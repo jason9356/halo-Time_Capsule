@@ -9,8 +9,9 @@
     /* 防止暗色模式闪烁：在样式加载前恢复访客的手动选择 */
     (function(){try{var t=localStorage.getItem('tc-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();
   </script>
-  <th:block th:replace="~{modules/fonts :: fonts}"></th:block>
   <link rel="stylesheet" th:href="@{/assets/css/theme.css?v={v}(v=${theme.spec.version})}" />
+  <!-- 字体方案必须在 theme.css 之后，否则 :root 变量会被主题默认值盖掉 -->
+  <th:block th:replace="~{modules/fonts :: fonts}"></th:block>
 </head>
 <body></body>
 </html>

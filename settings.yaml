@@ -157,7 +157,12 @@ spec:
               value: editor
             - label: 自定义 — 上传自己的字体文件
               value: custom
-          help: 「书卷」为默认推荐。「墨韵」用主题自带霞鹜文楷做标题/正文，字重更松、更适合长文。自定义可上传 woff2/ttf。
+          help: 「书卷」为默认推荐。「墨韵」用主题自带霞鹜文楷做标题/正文，字重更松、更适合长文。自定义可上传 woff2/ttf。保存后请硬刷新；升级主题后若选项不变，先点「重载主题配置」。
+        - $formkit: checkbox
+          name: brand_lishu
+          label: 顶栏站名使用隶书
+          value: false
+          help: 仅作用于「时间容器」等站点标题，正文与列表不变。依赖本机隶书（如华文隶书 / LiSu）；没有则回退到当前标题字体。
         - $formkit: attachment
           name: custom_serif
           label: 衬线字体（标题 + 正文）

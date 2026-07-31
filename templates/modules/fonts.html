@@ -47,11 +47,11 @@
   <style th:if="${scheme == 'wenkai'}">
     :root{
       --serif: "LXGW WenKai", "Noto Serif SC", "Source Han Serif SC", serif;
-      --font-heading: var(--serif);
-      --font-body: var(--serif);
+      --font-heading: "LXGW WenKai", "Noto Serif SC", serif;
+      --font-body: "LXGW WenKai", "Noto Serif SC", serif;
       --font-ui: var(--sans);
     }
-    .brand-text h1,
+    .brand-text h1:not(.is-lishu),
     .page-title,
     .book-info h1,
     .cat-card .cn,

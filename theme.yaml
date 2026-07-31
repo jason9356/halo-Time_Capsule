@@ -14,7 +14,7 @@ spec:
   issues: https://blog.xybkwd.top
   settingName: time-capsule-setting
   configMapName: time-capsule-configMap
-  version: 1.8.4
+  version: 1.8.5
   requires: ">=2.22.0"
   license:
     - name: "GPL-3.0"

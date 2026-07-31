@@ -5,7 +5,8 @@
   <a class="brand" th:href="@{/}">
     <img class="seal" th:src="@{/assets/img/seal.png}" width="58" height="58" alt="时间容器" />
     <div class="brand-text">
-      <h1 th:text="${site.title}">站点标题</h1>
+      <h1 th:classappend="${theme.config.typography?.brand_lishu == true} ? ' is-lishu' : ''"
+          th:text="${site.title}">站点标题</h1>
       <div class="tag" th:if="${not #strings.isEmpty(theme.config.basic?.slogan)}" th:text="${theme.config.basic.slogan}">题记</div>
     </div>
   </a>
