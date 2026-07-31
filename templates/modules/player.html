@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="player" th:if="${not #strings.isEmpty(theme.config.navidrome?.base_url) and not #strings.isEmpty(theme.config.navidrome?.playlist_id)}">
+  <div class="player" id="tc-player" title="博客背景音乐">
+    <button class="p-play" id="tc-play" type="button" aria-label="播放/暂停">
+      <svg id="tc-icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="tc-icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+    </button>
+    <div class="p-title" id="tc-track">博客背景音乐</div>
+    <div class="p-extra">
+      <button id="tc-prev" type="button" aria-label="上一首"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+      <button id="tc-next" type="button" aria-label="下一首"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+      <input class="p-vol" id="tc-vol" type="range" min="0" max="100" value="80" aria-label="音量" />
+    </div>
+  </div>
+  <script th:inline="javascript">
+    window.__TC_NAVIDROME__ = {
+      baseUrl: [[${theme.config.navidrome?.base_url}]],
+      username: [[${theme.config.navidrome?.username}]],
+      password: [[${theme.config.navidrome?.password}]],
+      playlistId: [[${theme.config.navidrome?.playlist_id}]],
+      autoplay: [[${theme.config.navidrome?.autoplay}]]
+    };
+  </script>
+  <script th:src="@{/assets/js/player.js?v={v}(v=${theme.spec.version})}"></script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="~{modules/head :: head(${category.spec.displayName})}"></head>
+<body th:with="isBook=${#lists.isEmpty(category.spec.children)}">
+<div class="container">
+  <header th:replace="~{modules/header :: header}"></header>
+
+  <div class="page-head">
+    <div class="breadcrumb">
+      <a th:href="@{/}">首页</a>
+      <th:block th:each="crumb,iter : ${categoryFinder.getBreadcrumbs(category.metadata.name)}">
+        <span class="sep">/</span>
+        <a th:if="${!iter.last}" th:href="@{${crumb.status.permalink}}" th:text="${crumb.spec.displayName}"></a>
+        <span th:if="${iter.last}" th:text="${crumb.spec.displayName}"></span>
+      </th:block>
+    </div>
+    <div class="page-title" th:text="${category.spec.displayName}">阅读</div>
+    <div class="page-desc" th:if="${category.spec.description}" th:text="${category.spec.description}"></div>
+  </div>
+
+  <!-- 分类主页：子分类（书）筛选条 -->
+  <div class="filter-bar" th:if="${!isBook}" th:with="subs=${categoryFinder.getByNames(category.spec.children)}">
+    <a class="filter-chip on" th:href="@{${category.status.permalink}}">全部</a>
+    <a class="filter-chip" th:each="sub : ${subs}" th:href="@{${sub.status.permalink}}" th:text="${sub.spec.displayName}">书</a>
+  </div>
+
+  <!-- 书单页头：封面 + 书名 + 简介（子分类=一本书） -->
+  <div class="book-head" th:if="${isBook}">
+    <div class="book-cover">
+      <img th:if="${not #strings.isEmpty(category.spec.cover)}" th:src="${category.spec.cover}" th:alt="${category.spec.displayName}" />
+      <div class="cvt" th:unless="${not #strings.isEmpty(category.spec.cover)}" th:text="${category.spec.displayName}">书名</div>
+    </div>
+    <div class="book-info">
+      <h1 th:text="'《' + ${category.spec.displayName} + '》'">《书名》</h1>
+      <div class="bm" th:text="${category.postCount} + ' 篇笔记'">0 篇笔记</div>
+      <div class="bi" th:if="${category.spec.description}" th:text="${category.spec.description}"></div>
+    </div>
+  </div>
+
+  <!-- 书单页：该书文章时间线 -->
+  <section class="timeline" th:if="${isBook}">
+    <a class="timeline-item" th:each="post : ${posts.items}" th:href="@{${post.status.permalink}}">
+      <span class="dot"></span>
+      <span class="td" th:text="${#temporals.format(post.spec.publishTime,'yyyy-MM-dd')}">2026-01-01</span>
+      <span class="tt" th:text="${post.spec.title}">标题</span>
+    </a>
+    <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
+  </section>
+
+  <!-- 分类主页：紧凑文章列表 -->
+  <section th:if="${!isBook}">
+    <a class="cat-post-item" th:each="post : ${posts.items}" th:href="@{${post.status.permalink}}">
+      <span class="cd" th:text="${#temporals.format(post.spec.publishTime,'MM-dd')}">01-01</span>
+      <span class="ct" th:text="${post.spec.title}">标题</span>
+      <span class="cb" th:if="${not #lists.isEmpty(post.categories)}" th:text="${post.categories[0].spec.displayName}">书</span>
+      <span class="ctm" th:text="|${post.stats?.visit ?: 0} 阅读|">0 阅读</span>
+    </a>
+    <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
+  </section>
+
+  <footer th:replace="~{modules/footer :: footer}"></footer>
+</div>
+<div th:replace="~{modules/player :: player}"></div>
+</body>
+</html>

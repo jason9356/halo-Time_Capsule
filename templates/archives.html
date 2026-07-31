@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="~{modules/head :: head('归档')}"></head>
+<body>
+<div class="container-narrow">
+  <header th:replace="~{modules/header :: header}"></header>
+
+  <div class="page-head">
+    <div class="breadcrumb"><a th:href="@{/}">首页</a><span class="sep">/</span>归档</div>
+    <div class="page-title">归档</div>
+    <div class="page-desc">按时间回看这一路写下的字。</div>
+  </div>
+
+  <div style="padding:10px 0 50px;" th:with="archives=${postFinder.archives(1, 500)}">
+    <th:block th:each="archive : ${archives.items}">
+      <div class="archive-year" th:text="${archive.year}">2026</div>
+      <th:block th:each="month : ${archive.months}">
+        <div class="archive-month" th:text="${month.month}">07月</div>
+        <a class="archive-item" th:each="p : ${month.posts}" th:href="@{${p.status.permalink}}">
+          <span class="ad" th:text="${#temporals.format(p.spec.publishTime,'MM-dd')}">07-27</span>
+          <span class="at" th:text="${p.spec.title}">标题</span>
+        </a>
+      </th:block>
+    </th:block>
+  </div>
+
+  <footer th:replace="~{modules/footer :: footer}"></footer>
+</div>
+<div th:replace="~{modules/player :: player}"></div>
+</body>
+</html>

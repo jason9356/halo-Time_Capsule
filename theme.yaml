@@ -1,0 +1,21 @@
+apiVersion: theme.halo.run/v1alpha1
+kind: Theme
+metadata:
+  name: time-capsule
+spec:
+  displayName: 时间容器
+  author:
+    name: 时间容器
+    website: https://blog.xybkwd.top
+  description: 书卷气、高密度、为长期写作而生的个人图书馆式 Halo 主题。
+  logo: https://blog.xybkwd.top/favicon.ico
+  homepage: https://blog.xybkwd.top
+  repo: https://blog.xybkwd.top
+  issues: https://blog.xybkwd.top
+  settingName: time-capsule-setting
+  configMapName: time-capsule-configMap
+  version: 1.0.0
+  requires: ">=2.22.0"
+  license:
+    - name: "GPL-3.0"
+      url: "https://www.gnu.org/licenses/gpl-3.0.html"

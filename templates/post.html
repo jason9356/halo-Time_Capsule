@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="~{modules/head :: head(${post.spec.title})}"></head>
+<body>
+<div class="container-narrow">
+  <header th:replace="~{modules/header :: header}"></header>
+
+  <div class="page-head">
+    <div class="breadcrumb">
+      <a th:href="@{/}">首页</a>
+      <th:block th:if="${not #lists.isEmpty(post.categories)}" th:with="pcat=${post.categories[0]}">
+        <span class="sep">/</span>
+        <a th:href="@{${pcat.status.permalink}}" th:text="${pcat.spec.displayName}">分类</a>
+      </th:block>
+    </div>
+    <div class="page-title" th:text="${post.spec.title}">文章标题</div>
+    <div class="page-desc">
+      <span th:text="${#temporals.format(post.spec.publishTime,'yyyy-MM-dd')}">2026-01-01</span>
+      <span th:text="| · 阅读 ${post.stats?.visit ?: 0} · 评论 ${post.status?.commentsCount ?: 0}|"></span>
+    </div>
+  </div>
+
+  <div class="post-body">
+    <article class="post-content" th:utext="${post.content.content}"></article>
+
+    <aside class="post-sidebar">
+      <div class="side-block" th:if="${not #lists.isEmpty(post.categories)}">
+        <h4>分类路径</h4>
+        <div class="side-path">
+          <a th:each="c,iter : ${post.categories}" th:href="@{${c.status.permalink}}">
+            <span th:if="${iter.index > 0}"> / </span><span th:text="${c.spec.displayName}"></span>
+          </a>
+        </div>
+      </div>
+      <div class="side-block" th:if="${not #lists.isEmpty(post.tags)}">
+        <h4>标签云</h4>
+        <div class="tag-cloud">
+          <a th:each="t : ${post.tags}" th:href="@{${t.status.permalink}}" th:text="${t.spec.displayName}">标签</a>
+        </div>
+      </div>
+      <div class="side-block"
+           th:if="${not #lists.isEmpty(post.categories)}"
+           th:with="rel=${postFinder.list({page:1,size:5,categoryName:post.categories[0].metadata.name,sort:{'spec.publishTime,desc'}})}">
+        <h4>相关文章</h4>
+        <a class="rel-item" th:each="r : ${rel.items}" th:if="${r.metadata.name != post.metadata.name}" th:href="@{${r.status.permalink}}">
+          <div class="rt" th:text="${r.spec.title}">标题</div>
+          <div class="rd" th:text="${#temporals.format(r.spec.publishTime,'yyyy-MM-dd')}">2026-01-01</div>
+        </a>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 上一篇 / 下一篇 -->
+  <div class="post-nav" th:with="cur=${postFinder.cursor(post.metadata.name)}">
+    <a th:if="${cur.hasPrevious()}" th:href="@{${cur.previous.status.permalink}}">
+      <span class="pn-label">上一篇</span><span th:text="${cur.previous.spec.title}"></span>
+    </a>
+    <span th:if="${not cur.hasPrevious()}"></span>
+    <a th:if="${cur.hasNext()}" th:href="@{${cur.next.status.permalink}}" style="text-align:right">
+      <span class="pn-label">下一篇</span><span th:text="${cur.next.spec.title}"></span>
+    </a>
+  </div>
+
+  <!-- 评论区（需安装评论插件后自动渲染） -->
+  <section class="post-comment" th:if="${site.comment.enable}" style="padding:20px 0 40px;">
+    <halo:comment kind="Post" th:attr="name=${post.metadata.name},group=content.halo.run"></halo:comment>
+  </section>
+
+  <footer th:replace="~{modules/footer :: footer}"></footer>
+</div>
+<div th:replace="~{modules/player :: player}"></div>
+</body>
+</html>

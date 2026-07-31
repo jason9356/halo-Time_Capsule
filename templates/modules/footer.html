@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer class="site-footer" th:fragment="footer">
+  <div class="manifesto" th:if="${theme.config.basic?.manifesto}" th:text="${theme.config.basic?.manifesto}">这里写下的每一个字，皆出自本心，无一由机器代笔。</div>
+  <div class="copyright">
+    &copy; <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}">2026</span>
+    <span th:text="${site.title}">时间容器</span> · Powered by <a href="https://halo.run" target="_blank" rel="noopener">Halo</a>
+    <span th:if="${theme.config.basic?.record_number}" th:text="' · ' + ${theme.config.basic?.record_number}"></span>
+  </div>
+  <div class="footer-links">
+    <a th:href="@{/feed.xml}">RSS</a>
+    <a th:href="@{${site.routes.archivesUri}}">归档</a>
+    <a th:href="@{${site.routes.categoriesUri}}">分类</a>
+  </div>
+</footer>
+<script th:src="@{/assets/js/theme.js?v={v}(v=${theme.spec.version})}"></script>
+</body>
+</html>

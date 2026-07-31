@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="~{modules/head :: head(null)}"></head>
+<body>
+<div class="container">
+  <header th:replace="~{modules/header :: header}"></header>
+
+  <!-- 分类卡片导航：图书馆入口 -->
+  <section class="category-nav">
+    <div class="sec-label">全部分类</div>
+    <div class="cat-grid">
+      <a class="cat-card" th:each="cat : ${categoryFinder.listAsTree()}" th:href="@{${cat.status.permalink}}">
+        <div class="cn" th:text="${cat.spec.displayName}">阅读</div>
+        <div class="cc">
+          <span th:if="${not #lists.isEmpty(cat.children)}" th:text="${#lists.size(cat.children)} + ' 书卷 · '"></span><span th:text="${cat.postCount} + ' 篇'"></span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 精华区：置顶代表作 -->
+  <section class="featured"
+           th:with="pinned=${postFinder.list({page:1,size:5,sort:{'spec.pinned,desc','spec.publishTime,desc'}})}"
+           th:if="${not #lists.isEmpty(pinned.items) and pinned.items[0].spec.pinned}">
+    <div class="sec-label">精华</div>
+    <a class="featured-item" th:each="post : ${pinned.items}" th:if="${post.spec.pinned}" th:href="@{${post.status.permalink}}">
+      <div class="ft" th:text="${post.spec.title}">标题</div>
+      <div class="fe" th:text="${post.status.excerpt}">摘要</div>
+      <div class="fd" th:text="${#temporals.format(post.spec.publishTime,'yyyy-MM-dd')}">2026-01-01</div>
+    </a>
+  </section>
+
+  <div class="home-body">
+    <!-- 书单墙：阅读分类下的每本书 -->
+    <aside class="book-wall" th:with="bookSlug=${theme.config.basic?.book_category_slug}">
+      <div class="sec-label">书单墙</div>
+      <th:block th:each="topCat : ${categoryFinder.listAsTree()}">
+        <th:block th:if="${topCat.spec.slug == bookSlug}">
+          <a class="book-item" th:each="book : ${topCat.children}" th:href="@{${book.status.permalink}}">
+            <span class="bt" th:text="${book.spec.displayName}">书名</span>
+            <span class="bc" th:text="${book.postCount}">0</span>
+          </a>
+        </th:block>
+      </th:block>
+      <a class="book-more" th:href="@{${site.routes.categoriesUri}}">全部书卷 →</a>
+    </aside>
+
+    <!-- 高密度文章流 -->
+    <section class="post-stream">
+      <div class="sec-label">最新文章</div>
+      <a class="stream-item" th:each="post : ${posts.items}" th:href="@{${post.status.permalink}}">
+        <div class="stream-date">
+          <span class="d" th:text="${#temporals.format(post.spec.publishTime,'dd')}">27</span>
+          <span class="m" th:text="${#temporals.format(post.spec.publishTime,'MM月')}">07月</span>
+        </div>
+        <div class="stream-main">
+          <div class="st" th:text="${post.spec.title}">标题</div>
+          <div class="sx" th:text="${post.status.excerpt}">摘要</div>
+          <div class="sm">
+            <span th:if="${not #lists.isEmpty(post.categories)}" th:text="${post.categories[0].spec.displayName} + ' · '"></span><span th:text="|阅读 ${post.stats?.visit ?: 0} · 评论 ${post.status?.commentsCount ?: 0}|"></span>
+          </div>
+        </div>
+      </a>
+      <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
+    </section>
+  </div>
+
+  <footer th:replace="~{modules/footer :: footer}"></footer>
+</div>
+<div th:replace="~{modules/player :: player}"></div>
+</body>
+</html>

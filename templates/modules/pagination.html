@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="pagination" th:fragment="pagination(page)" th:if="${page != null and (page.hasPrevious() or page.hasNext())}">
+  <a th:if="${page.hasPrevious()}" th:href="@{${page.prevUrl}}">上一页</a>
+  <span class="page-info" th:text="${page.page} + ' / ' + ${page.totalPages}">1 / 1</span>
+  <a th:if="${page.hasNext()}" th:href="@{${page.nextUrl}}">下一页</a>
+</div>
+</body>
+</html>

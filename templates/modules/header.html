@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="site-header" th:fragment="header">
+  <a class="brand" th:href="@{/}">
+    <div class="seal" th:text="${#strings.isEmpty(site.title) ? '时' : site.title.substring(0,1)}">时</div>
+    <div class="brand-text">
+      <h1 th:text="${site.title}">时间容器</h1>
+      <div class="tag" th:if="${theme.config.basic?.slogan}" th:text="${theme.config.basic?.slogan}">在字里行间，安放流逝的时间</div>
+    </div>
+  </a>
+  <div class="header-tools">
+    <a th:href="@{${site.routes.archivesUri}}" title="归档浏览" aria-label="归档浏览">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </a>
+    <button id="theme-toggle" type="button" title="切换明暗" aria-label="切换明暗">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+</body>
+</html>

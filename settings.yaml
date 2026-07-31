@@ -1,0 +1,52 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: time-capsule-setting
+spec:
+  forms:
+    - group: basic
+      label: 基础
+      formSchema:
+        - $formkit: text
+          name: slogan
+          label: 站点题记
+          value: 在字里行间，安放流逝的时间
+          help: 显示在站点名称下方的一句话
+        - $formkit: text
+          name: book_category_slug
+          label: 阅读分类别名
+          value: yue-du
+          help: 作为「书单墙」的一级分类别名（slug），其下每个子分类视为一本书
+        - $formkit: textarea
+          name: manifesto
+          label: 页脚宣言
+          value: 这里写下的每一个字，皆出自本心，无一由机器代笔。
+          help: 显示在页脚的一句话宣言
+        - $formkit: text
+          name: record_number
+          label: 备案号
+          help: 可选，ICP 备案号，留空则不显示
+    - group: navidrome
+      label: 音乐播放
+      formSchema:
+        - $formkit: text
+          name: base_url
+          label: Navidrome 地址
+          help: 公网可达的 Navidrome 服务地址，不含末尾斜杠
+        - $formkit: text
+          name: username
+          label: 用户名
+          help: 强烈建议使用博客专用只读账号
+        - $formkit: text
+          name: password
+          label: 密码
+          help: 仅用于前端 Subsonic token 认证；请务必使用受限只读账号
+        - $formkit: text
+          name: playlist_id
+          label: 歌单 ID
+          help: 「博客背景音乐」歌单的 ID（可在 Navidrome 歌单页 URL 中找到）
+        - $formkit: checkbox
+          name: autoplay
+          label: 自动播放
+          value: false
+          help: 默认关闭；访客点击播放键才开始

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${title != null ? title + ' · ' + site.title : site.title}">时间容器</title>
+  <link rel="icon" th:href="${site.favicon}" />
+  <script>
+    /* 防止暗色模式闪烁：在样式加载前恢复访客的手动选择 */
+    (function(){try{var t=localStorage.getItem('tc-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" th:href="@{/assets/css/theme.css?v={v}(v=${theme.spec.version})}" />
+</head>
+<body></body>
+</html>
