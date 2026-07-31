@@ -8,7 +8,7 @@
   <div class="page-head">
     <div class="breadcrumb"><a th:href="@{/}">首页</a><span class="sep">/</span>归档</div>
     <div class="page-title">归档</div>
-    <div class="page-desc">按时间回看这一路写下的字。</div>
+    <div class="page-desc" th:if="${not #strings.isEmpty(theme.config.basic?.archive_desc)}" th:text="${theme.config.basic.archive_desc}">归档说明</div>
   </div>
 
   <div style="padding:10px 0 50px;" th:with="archives=${postFinder.archives(1, 500)}">

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="~{modules/head :: head(${tag.spec.displayName})}"></head>
+<body>
+<div class="container-narrow">
+  <header th:replace="~{modules/header :: header}"></header>
+
+  <div class="page-head">
+    <div class="breadcrumb">
+      <a th:href="@{/}">首页</a>
+      <span class="sep">/</span>
+      <a th:href="@{${site.routes.tagsUri}}">标签</a>
+      <span class="sep">/</span>
+      <span th:text="${tag.spec.displayName}">标签</span>
+    </div>
+    <div class="page-title" th:text="${tag.spec.displayName}">标签</div>
+    <div class="page-desc" th:text="${(tag.postCount ?: 0) + ' 篇文章'}">0 篇文章</div>
+  </div>
+
+  <section style="padding:10px 0 50px;">
+    <a class="cat-post-item" th:each="post : ${posts.items}" th:href="@{${post.status.permalink}}">
+      <span class="cd" th:text="${#temporals.format(post.spec.publishTime,'MM-dd')}">01-01</span>
+      <span class="ct" th:text="${post.spec.title}">标题</span>
+      <span class="cb" th:if="${not #lists.isEmpty(post.categories)}" th:text="${post.categories[0].spec.displayName}">分类</span>
+      <span class="ctm" th:text="|${post.stats?.visit ?: 0} 阅读|">0 阅读</span>
+    </a>
+    <div th:if="${#lists.isEmpty(posts.items)}" class="page-desc" style="padding:40px 0;text-align:center;">这个标签下还没有文章。</div>
+    <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
+  </section>
+
+  <footer th:replace="~{modules/footer :: footer}"></footer>
+</div>
+<div th:replace="~{modules/player :: player}"></div>
+</body>
+</html>

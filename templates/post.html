@@ -25,7 +25,7 @@
 
     <aside class="post-sidebar">
       <div class="side-block" th:if="${not #lists.isEmpty(post.categories)}">
-        <h4>分类路径</h4>
+        <h4 th:text="${theme.config.labels?.sidebar_path ?: '分类路径'}">分类路径</h4>
         <div class="side-path">
           <a th:each="c,iter : ${post.categories}" th:href="@{${c.status.permalink}}">
             <span th:if="${iter.index > 0}"> / </span><span th:text="${c.spec.displayName}"></span>
@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="side-block" th:if="${not #lists.isEmpty(post.tags)}">
-        <h4>标签云</h4>
+        <h4 th:text="${theme.config.labels?.sidebar_tags ?: '标签'}">标签</h4>
         <div class="tag-cloud">
           <a th:each="t : ${post.tags}" th:href="@{${t.status.permalink}}" th:text="${t.spec.displayName}">标签</a>
         </div>
@@ -41,7 +41,7 @@
       <div class="side-block"
            th:if="${not #lists.isEmpty(post.categories)}"
            th:with="rel=${postFinder.list({page:1,size:5,categoryName:post.categories[0].metadata.name,sort:{'spec.publishTime,desc'}})}">
-        <h4>相关文章</h4>
+        <h4 th:text="${theme.config.labels?.sidebar_related ?: '相关文章'}">相关文章</h4>
         <a class="rel-item" th:each="r : ${rel.items}" th:if="${r.metadata.name != post.metadata.name}" th:href="@{${r.status.permalink}}">
           <div class="rt" th:text="${r.spec.title}">标题</div>
           <div class="rd" th:text="${#temporals.format(r.spec.publishTime,'yyyy-MM-dd')}">2026-01-01</div>

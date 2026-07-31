@@ -31,8 +31,8 @@
       <div class="cvt" th:unless="${not #strings.isEmpty(category.spec.cover)}" th:text="${category.spec.displayName}">书名</div>
     </div>
     <div class="book-info">
-      <h1 th:text="'《' + ${category.spec.displayName} + '》'">《书名》</h1>
-      <div class="bm" th:text="${category.postCount} + ' 篇笔记'">0 篇笔记</div>
+      <h1 th:text="${category.spec.displayName}">书名</h1>
+      <div class="bm" th:text="${category.postCount} + ' ' + ${theme.config.basic?.book_count_suffix ?: '篇笔记'}">0 篇笔记</div>
       <div class="bi" th:if="${category.spec.description}" th:text="${category.spec.description}"></div>
     </div>
   </div>

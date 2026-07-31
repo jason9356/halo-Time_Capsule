@@ -85,6 +85,7 @@ img{max-width:100%;height:auto;}
 
 /* ---------- 首页主体：书单墙 + 文章流 ---------- */
 .home-body{display:grid;grid-template-columns:250px minmax(0,1fr);gap:48px;padding:34px 0 56px;align-items:start;}
+.home-body.no-book-wall{grid-template-columns:minmax(0,1fr);}
 .book-wall{min-width:0;}
 .book-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border:1px solid var(--line);border-left:3px solid var(--link);border-radius:3px;margin-bottom:10px;background:var(--surface);transition:.2s;}
 .book-item:hover{border-left-color:var(--accent);background:var(--hi);transform:translateX(3px);}
@@ -191,6 +192,7 @@ img{max-width:100%;height:auto;}
 .tag-cloud{display:flex;gap:8px;flex-wrap:wrap;}
 .tag-cloud a{font-size:13px;color:var(--sub);border:1px solid var(--line);border-radius:3px;padding:4px 10px;}
 .tag-cloud a:hover{border-color:var(--accent);color:var(--accent);}
+.tag-cloud-page a{font-size:15px;padding:8px 14px;}
 .rel-item{display:block;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line);}
 .rel-item:last-child{border-bottom:none;}
 .rel-item .rt{font-family:var(--serif);font-size:15px;color:var(--ink);line-height:1.4;}

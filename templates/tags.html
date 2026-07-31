@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="~{modules/head :: head('全部标签')}"></head>
+<body>
+<div class="container-narrow">
+  <header th:replace="~{modules/header :: header}"></header>
+
+  <div class="page-head">
+    <div class="breadcrumb"><a th:href="@{/}">首页</a><span class="sep">/</span>标签</div>
+    <div class="page-title" th:text="${theme.config.labels?.tags_title ?: '全部标签'}">全部标签</div>
+  </div>
+
+  <div class="tag-cloud tag-cloud-page" style="padding:28px 0 50px;" th:with="allTags=${tagFinder.listAll()}">
+    <a th:each="t : ${allTags}" th:href="@{${t.status.permalink}}" th:text="${t.spec.displayName} + ' · ' + ${t.postCount ?: 0}">标签</a>
+    <div th:if="${#lists.isEmpty(allTags)}" class="page-desc" style="text-align:center;width:100%;">还没有创建标签。</div>
+  </div>
+
+  <footer th:replace="~{modules/footer :: footer}"></footer>
+</div>
+<div th:replace="~{modules/player :: player}"></div>
+</body>
+</html>

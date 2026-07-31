@@ -5,9 +5,9 @@
 <div class="container">
   <header th:replace="~{modules/header :: header}"></header>
 
-  <!-- 分类卡片导航：图书馆入口 -->
-  <section class="category-nav">
-    <div class="sec-label">全部分类</div>
+  <!-- 分类卡片导航 -->
+  <section class="category-nav" th:if="${theme.config.layout?.show_category_nav != false}">
+    <div class="sec-label" th:text="${theme.config.labels?.categories ?: '全部分类'}">全部分类</div>
     <div class="cat-grid">
       <a class="cat-card" th:each="cat : ${categoryFinder.listAsTree()}" th:href="@{${cat.status.permalink}}">
         <div class="cn" th:text="${cat.spec.displayName}">阅读</div>
@@ -21,8 +21,8 @@
   <!-- 精华区：置顶代表作 -->
   <section class="featured"
            th:with="pinned=${postFinder.list({page:1,size:5,sort:{'spec.pinned,desc','spec.publishTime,desc'}})}"
-           th:if="${not #lists.isEmpty(pinned.items) and pinned.items[0].spec.pinned}">
-    <div class="sec-label">精华</div>
+           th:if="${theme.config.layout?.show_featured != false and not #lists.isEmpty(pinned.items) and pinned.items[0].spec.pinned}">
+    <div class="sec-label" th:text="${theme.config.labels?.featured ?: '精华'}">精华</div>
     <a class="featured-item" th:each="post : ${pinned.items}" th:if="${post.spec.pinned}" th:href="@{${post.status.permalink}}">
       <div class="ft" th:text="${post.spec.title}">标题</div>
       <div class="fe" th:text="${post.status.excerpt}">摘要</div>
@@ -30,24 +30,25 @@
     </a>
   </section>
 
-  <div class="home-body">
-    <!-- 书单墙：阅读分类下的每本书 -->
-    <aside class="book-wall" th:with="bookSlug=${theme.config.basic?.book_category_slug}">
-      <div class="sec-label">书单墙</div>
+  <div class="home-body" th:classappend="${theme.config.layout?.show_book_wall == false} ? 'no-book-wall' : ''">
+    <!-- 书单墙：阅读分类下的每本书（子分类） -->
+    <aside class="book-wall" th:if="${theme.config.layout?.show_book_wall != false}" th:with="bookSlug=${theme.config.basic?.book_category_slug}">
+      <div class="sec-label" th:text="${theme.config.labels?.book_wall ?: '书单墙'}">书单墙</div>
       <th:block th:each="topCat : ${categoryFinder.listAsTree()}">
         <th:block th:if="${topCat.spec.slug == bookSlug}">
-          <a class="book-item" th:each="book : ${topCat.children}" th:href="@{${book.status.permalink}}">
+          <a class="book-item" th:each="book : ${topCat.children}" th:href="@{${book.status.permalink}}"
+             th:with="bookVo=${categoryFinder.getByName(book.metadata.name)}">
             <span class="bt" th:text="${book.spec.displayName}">书名</span>
-            <span class="bc" th:text="${book.postCount}">0</span>
+            <span class="bc" th:text="${bookVo != null ? bookVo.postCount : (book.postCount ?: 0)}">0</span>
           </a>
         </th:block>
       </th:block>
-      <a class="book-more" th:href="@{${site.routes.categoriesUri}}">全部书卷 →</a>
+      <a class="book-more" th:href="@{${site.routes.categoriesUri}}" th:text="${theme.config.basic?.book_wall_more ?: '全部书卷 →'}">全部书卷 →</a>
     </aside>
 
-    <!-- 高密度文章流 -->
+    <!-- 文章流 -->
     <section class="post-stream">
-      <div class="sec-label">最新文章</div>
+      <div class="sec-label" th:text="${theme.config.labels?.latest_posts ?: '最新文章'}">最新文章</div>
       <a class="stream-item" th:each="post : ${posts.items}" th:href="@{${post.status.permalink}}">
         <div class="stream-date">
           <span class="d" th:text="${#temporals.format(post.spec.publishTime,'dd')}">27</span>
