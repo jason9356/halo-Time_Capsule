@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
 <head th:replace="~{modules/head :: head(${category.spec.displayName})}"></head>
-<body th:with="isBook=${#lists.isEmpty(category.spec.children)}">
+<!-- 仅「阅读」根下的叶子分类才是书单页；随感等一级叶子走普通列表，避免误用书单时间线 -->
+<body th:with="bookSlug=${theme.config.basic?.book_category_slug ?: 'yue-du'},
+               crumbs=${categoryFinder.getBreadcrumbs(category.metadata.name)},
+               isBook=${#lists.isEmpty(category.spec.children) and #lists.size(crumbs) >= 2 and (crumbs[0].spec.slug == bookSlug or crumbs[0].spec.displayName == bookSlug)}">
 <div id="tc-page">
 <div class="container">
   <header th:replace="~{modules/header :: header}"></header>
@@ -9,7 +12,7 @@
   <div class="page-head">
     <div class="breadcrumb">
       <a th:href="@{/}">首页</a>
-      <th:block th:each="crumb,iter : ${categoryFinder.getBreadcrumbs(category.metadata.name)}">
+      <th:block th:each="crumb,iter : ${crumbs}">
         <span class="sep">/</span>
         <a th:if="${!iter.last}" th:href="@{${crumb.status.permalink}}" th:text="${crumb.spec.displayName}"></a>
         <span th:if="${iter.last}" th:text="${crumb.spec.displayName}"></span>
@@ -20,13 +23,14 @@
   </div>
 
   <!-- 分类主页：子分类（书）筛选条 -->
-  <div class="filter-bar" th:if="${!isBook}" th:with="subs=${categoryFinder.getByNames(category.spec.children)}">
+  <div class="filter-bar" th:if="${!isBook and not #lists.isEmpty(category.spec.children)}"
+       th:with="subs=${categoryFinder.getByNames(category.spec.children)}">
     <a class="filter-chip on" th:href="@{${category.status.permalink}}">全部</a>
     <a class="filter-chip" th:each="sub : ${subs}" th:href="@{${sub.status.permalink}}"
        th:text="${#strings.replace(#strings.replace(sub.spec.displayName,'《',''),'》','')}">书</a>
   </div>
 
-  <!-- 书单页头：封面 + 书名 + 简介（子分类=一本书） -->
+  <!-- 书单页头：封面 + 书名 + 简介（阅读下的子分类=一本书） -->
   <div class="book-head" th:if="${isBook}"
        th:with="bookTitle=${#strings.replace(#strings.replace(category.spec.displayName,'《',''),'》','')}">
     <div class="book-cover">
@@ -35,12 +39,12 @@
     </div>
     <div class="book-info">
       <h1 th:text="${bookTitle}">书名</h1>
-      <div class="bm" th:text="${category.postCount} + ' ' + ${theme.config.basic?.book_count_suffix ?: '篇笔记'}">0 篇笔记</div>
+      <div class="bm" th:text="${(category.postCount ?: 0)} + ' ' + ${theme.config.basic?.book_count_suffix ?: '篇笔记'}">0 篇笔记</div>
       <div class="bi" th:if="${category.spec.description}" th:text="${category.spec.description}"></div>
     </div>
   </div>
 
-  <!-- 书单页：按发表时间从早到晚；序标其一/一 可选 -->
+  <!-- 书单页：按发表时间从早到晚；序标其一/一 可选。分页用框架 posts（含 prevUrl/nextUrl），勿用 postFinder.list 结果分页 -->
   <section class="timeline" th:if="${isBook}"
            th:with="chapterStyle=${theme.config.basic?.book_chapter_style ?: 'qi'},
                     cnNums=${#strings.arraySplit('一,二,三,四,五,六,七,八,九,十,十一,十二,十三,十四,十五,十六,十七,十八,十九,二十,二十一,二十二,二十三,二十四,二十五,二十六,二十七,二十八,二十九,三十', ',')},
@@ -59,10 +63,10 @@
         <th:block th:if="${label == null}" th:text="${post.spec.title}">标题</th:block>
       </span>
     </a>
-    <div th:replace="~{modules/pagination :: pagination(${bookPage})}"></div>
+    <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
   </section>
 
-  <!-- 分类主页：紧凑文章列表 -->
+  <!-- 普通分类（含随感等一级叶子）：紧凑文章列表 -->
   <section th:if="${!isBook}">
     <a class="cat-post-item" th:each="post : ${posts.items}" th:href="@{${post.status.permalink}}">
       <span class="cd" th:text="${#temporals.format(post.spec.publishTime,'MM-dd')}">01-01</span>

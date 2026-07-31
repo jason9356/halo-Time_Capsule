@@ -46,7 +46,8 @@
 
 1. **首页**：masthead（印章 + 站名 + 题记）→ 分类卡 → 精华（置顶）→ 左书单墙 + 右文章流 → 页脚宣言  
 2. **分类主页**（有子分类）：筛选条 + 紧凑列表  
-3. **书单页**（无子分类）：封面 + 书名 + 该书时间线；封面取分类 `cover`，无则纯色书封  
+3. **书单页**（「阅读」根下的叶子分类）：封面 + 书名 + 该书时间线；封面取分类 `cover`，无则纯色书封。随感等非阅读下的叶子走普通列表  
+ 
 4. **文章**：衬线正文（约 18px / 行高 1.9 / 首字下沉）+ 侧栏 + 上下篇 + 评论位  
 5. **播放器**：收起窄条 ↔ hover 展开（切歌 / 曲名 / 音量）
 
@@ -73,7 +74,9 @@
 | 静态资源 | `@{/assets/...}?v=${theme.spec.version}` |
 | 主题设置 | `theme.config.<组>.<字段>` |
 
-**category.html 自适应**：`#lists.isEmpty(category.spec.children)` → 空则书单页，非空则分类主页。一套模板，勿拆成两个文件除非有强理由。
+**category.html 自适应**：叶子 **且** 面包屑根 = `book_category_slug`（默认 `yue-du`）→ 书单页；否则分类主页/普通列表。一套模板，勿拆成两个文件除非有强理由。
+
+**分页坑**：`postFinder.list(...)` 返回的是无 `prevUrl`/`nextUrl` 的 `ListResult`；分页片段必须用框架注入的 `${posts}`（`UrlContextListResult`），否则多页分类会 500。
 
 ---
 
@@ -86,6 +89,7 @@
 | 书单墙篇数全 0 | `listAsTree()` 子节点 `postCount` 不可信 | ✅ v1.2 已用 `getByName` |
 | 标签链接 404 | 缺少 `tag.html` / `tags.html` | ✅ v1.2 已补 |
 | 音乐播不出 | HTTPS 页请求 HTTP Navidrome → 混合内容 | ✅ 运维侧已用 `https://music.xybkwd.top` 反代；前端有 Console 排查日志 |
+| 随感等叶子分类 500 | 误当书单页 + `postFinder.list` 结果无分页 URL | ✅ `isBook` 收紧到阅读根下；分页改用 `${posts}` |
 
 > 若篇数修对后仍为 0：检查文章是否勾选挂到对应「书」子分类。
 
