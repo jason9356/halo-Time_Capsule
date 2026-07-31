@@ -10,6 +10,8 @@
 - 内置 Navidrome（Subsonic）右下悬浮迷你播放器，不自动播放
 - 自带亮 / 暗双配色（跟随系统，可手动切换并记忆）
 
+设计约束、Halo API、已知坑与运维备忘见 **[docs/CONTEXT.md](docs/CONTEXT.md)**（后续优化请先读）。
+
 ---
 
 ## 一、目录结构
@@ -19,6 +21,7 @@ time-capsule/
 ├── theme.yaml                  # 主题清单
 ├── settings.yaml               # 后台设置项（基础 / Navidrome）
 ├── README.md
+├── docs/CONTEXT.md             # 设计 / 工程 / 运维交接备忘
 └── templates/
     ├── index.html              # 首页（分类导航 + 精华 + 书单墙 + 文章流）
     ├── category.html           # 分类主页 / 书单页（自适应）
