@@ -38,18 +38,19 @@
 
 暗色：同一套语义 token 翻转；`prefers-color-scheme` + 顶栏手动切换 + `localStorage`（`tc-theme`）。防闪烁脚本在 `modules/head.html`。
 
-字体：标题/正文 **Noto Serif SC**（兜底 Songti SC / STSong / SimSun）；导航/元信息 **Noto Sans SC**（PingFang / YaHei）。质感：圆角 2–4px、轻阴影、发丝线为主。
+字体：默认 **书卷**（Noto Serif 读 / Noto Sans 管）。可选 **全卷**、**墨韵**（霞鹜文楷标题正文 + Sans 界面，含字重/字距/行高微调）、**编辑器**、**自定义上传**。语义角色 `--font-heading` / `--font-body` / `--font-ui`。文楷文件自托管于 `templates/assets/fonts/lxgw-wenkai-*.woff2`，仅选用墨韵时加载。顶栏朱砂印为固定图。
 
 实现集中在 `templates/assets/css/theme.css`。
 
 ### 页面地图
 
-1. **首页**：masthead（印章 + 站名 + 题记）→ 分类卡 → 精华（置顶）→ 左书单墙 + 右文章流 → 页脚宣言  
+1. **首页**：masthead（固定朱砂印「時」+ 站名 + 题记）→ 分类卡 → 精华（置顶）→ 左书单墙 + 右文章流 → 页脚宣言  
 2. **分类主页**（有子分类）：筛选条 + 紧凑列表  
-3. **书单页**（「阅读」根下的叶子分类）：封面 + 书名 + 该书时间线；封面取分类 `cover`，无则纯色书封。随感等非阅读下的叶子走普通列表  
+3. **书单页**（「阅读」根下的叶子分类）：封面 + 作者 + 书名 + 该书时间线；封面取分类 `cover`，作者取注解 `tc.xybkwd.top/book-author`，简介取 `description`。半自动填写见 `tools/book-fill/`。
  
 4. **文章**：衬线正文（约 18px / 行高 1.9 / 首字下沉）+ 侧栏 + 上下篇 + 评论位  
-5. **播放器**：收起窄条 ↔ hover 展开（切歌 / 曲名 / 音量）
+5. **播放器**：收起窄条 ↔ hover 展开（切歌 / 曲名 / 音量）  
+6. **瞬间** `/moments`：需插件 `PluginMoments`；列表 + 详情；页脚在插件可用时显示入口。后续可由本地「灵感匣」(`D:\project\diary-app`) 经 API 同步。
 
 书单墙别名默认 `yue-du`，见 `settings.yaml` → `basic.book_category_slug`。
 
@@ -156,11 +157,24 @@ curl -s -D - -o /dev/null \
 1. **视觉精修**：在保留书卷气前提下优化间距、动效、阅读体验。  
 2. **移动端**：再验书单墙、文章侧栏、播放器触控。  
 3. **可选**：独立页面模板 `page.html`、友情链接等。  
-4. **运维**：CORS 若从 `*` 收紧，只改 Navidrome 环境变量。
+4. **运维**：CORS 若从 `*` 收紧，只改 Navidrome 环境变量。  
+5. **书目元数据**：本机半自动脚本 `tools/book-fill/`（不必部署到服务器）。
 
 ---
 
-## 8. 仓库与站外部署对照
+## 8. 书目半自动填写（部署说明）
+
+**不部署到 Halo 服务器。** 在个人电脑运行 Python 脚本即可：
+
+1. Halo 个人中心创建 PAT，写入 `tools/book-fill/.env`  
+2. `python tools/book-fill/book_fill.py --slug <书目别名> --isbn <ISBN>`  
+3. 脚本查 Google Books / Open Library，确认后写回分类封面、简介、作者注解  
+
+详见 [tools/book-fill/README.md](../tools/book-fill/README.md)。主题需包含 `annotation-settings.yaml` 并重载配置后，后台分类编辑才显示「书籍作者 / ISBN」。
+
+---
+
+## 9. 仓库与站外部署对照
 
 | 项 | 说明 |
 |---|---|

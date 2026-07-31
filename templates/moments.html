@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="~{modules/head :: head(${theme.config.labels?.moments_title ?: '瞬间'})}"></head>
+<body>
+<div id="tc-page">
+<div class="container-narrow">
+  <header th:replace="~{modules/header :: header}"></header>
+
+  <div class="page-head">
+    <div class="breadcrumb">
+      <a th:href="@{/}">首页</a><span class="sep">/</span>
+      <span th:text="${theme.config.labels?.moments_title ?: '瞬间'}">瞬间</span>
+    </div>
+    <div class="page-title" th:text="${theme.config.labels?.moments_title ?: '瞬间'}">瞬间</div>
+    <div class="page-desc" th:if="${not #strings.isEmpty(theme.config.basic?.moments_desc)}"
+         th:text="${theme.config.basic.moments_desc}">随手记下的碎片，来自灵感匣与后台。</div>
+  </div>
+
+  <div class="filter-bar moments-tags" th:if="${not #lists.isEmpty(tags)}">
+    <a class="filter-chip" th:href="@{/moments}"
+       th:classappend="${#lists.isEmpty(param.tag) ? ' on' : ''}">全部</a>
+    <a class="filter-chip" th:each="tag : ${tags}"
+       th:href="@{/moments(tag=${tag.name})}"
+       th:classappend="${param.tag != null and #lists.contains(param.tag, tag.name) ? ' on' : ''}">
+      <span th:text="${tag.name}">标签</span>
+      <span class="moments-tag-n" th:text="' · ' + ${tag.momentCount ?: 0}"></span>
+    </a>
+  </div>
+
+  <section class="moments-stream" th:if="${moments != null and not #lists.isEmpty(moments.items)}">
+    <article class="moment-card" th:each="moment : ${moments.items}"
+             th:with="content=${moment.spec.content}">
+      <a class="moment-card-link" th:href="@{/moments/{name}(name=${moment.metadata.name})}">
+        <time class="moment-time"
+              th:datetime="${moment.spec.releaseTime}"
+              th:text="${#temporals.format(moment.spec.releaseTime,'yyyy-MM-dd HH:mm')}">2026-01-01</time>
+        <div class="moment-body" th:if="${not #strings.isEmpty(content.html)}" th:utext="${content.html}"></div>
+        <div class="moment-body moment-empty" th:if="${#strings.isEmpty(content.html) and #lists.isEmpty(content.medium)}">（无文字）</div>
+      </a>
+
+      <div class="moment-media" th:if="${not #lists.isEmpty(content.medium)}">
+        <th:block th:each="media : ${content.medium}">
+          <a th:if="${media.type != null and media.type.name == 'PHOTO'}"
+             th:href="${media.url}" target="_blank" rel="noopener" class="moment-photo">
+            <img th:src="${media.url}" alt="" loading="lazy" />
+          </a>
+          <video th:if="${media.type != null and media.type.name == 'VIDEO'}"
+                 th:src="${media.url}" controls playsinline></video>
+          <audio th:if="${media.type != null and media.type.name == 'AUDIO'}"
+                 th:src="${media.url}" controls></audio>
+        </th:block>
+      </div>
+
+      <div class="moment-meta">
+        <span class="moment-owner" th:if="${moment.owner != null}" th:text="${moment.owner.displayName}">作者</span>
+        <th:block th:if="${not #lists.isEmpty(moment.spec.tags)}">
+          <a class="moment-tag" th:each="t : ${moment.spec.tags}"
+             th:href="@{/moments(tag=${t})}" th:text="${t}">标签</a>
+        </th:block>
+      </div>
+    </article>
+  </section>
+
+  <p class="moments-empty" th:if="${moments == null or #lists.isEmpty(moments.items)}">
+    还没有瞬间。可在后台「瞬间」发布，或之后从灵感匣同步过来。
+  </p>
+
+  <div th:replace="~{modules/pagination :: pagination(${moments})}"></div>
+
+  <footer th:replace="~{modules/footer :: footer}"></footer>
+</div>
+</div>
+<th:block th:replace="~{modules/footer :: scripts}"></th:block>
+</body>
+</html>

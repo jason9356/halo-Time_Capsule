@@ -18,31 +18,19 @@
 
 ```
 time-capsule/
-├── theme.yaml                  # 主题清单
-├── settings.yaml               # 后台设置项（基础 / Navidrome）
+├── theme.yaml
+├── settings.yaml
+├── annotation-settings.yaml    # 分类「作者 / ISBN」后台表单
+├── pack.ps1                    # 打可上传 zip（Linux 安全路径）
+├── tools/book-fill/            # 本机半自动填书目封面/作者/简介（不必上服务器）
 ├── README.md
-├── docs/CONTEXT.md             # 设计 / 工程 / 运维交接备忘
+├── docs/CONTEXT.md
 └── templates/
-    ├── index.html              # 首页（分类导航 + 精华 + 书单墙 + 文章流）
-    ├── category.html           # 分类主页 / 书单页（自适应）
-    ├── post.html               # 文章详情（正文 + 侧栏 + 上下篇 + 评论）
-    ├── archives.html           # 归档
-    ├── categories.html         # 全部分类集合页
-    ├── tag.html                # 单标签文章列表
-    ├── tags.html               # 全部标签
-    ├── error/404.html          # 404
-    ├── modules/                # 公共片段
-    │   ├── head.html           # <head>（含防暗色闪烁脚本）
-    │   ├── header.html         # 顶栏（印章 + 站名 + 题记 + 归档/明暗）
-    │   ├── footer.html         # 页脚（宣言 + 版权 + 链接）
-    │   ├── player.html         # 播放器（注入 Navidrome 配置）
-    │   └── pagination.html     # 分页
-    └── assets/
-        ├── css/theme.css       # 整套设计系统（含暗色、响应式）
-        └── js/
-            ├── theme.js        # 明暗切换
-            └── player.js       # Navidrome 播放器
 ```
+
+书目元数据半自动填写见 **[tools/book-fill/README.md](tools/book-fill/README.md)**（本机 Python，不部署到 Halo）。
+
+---
 
 ## 二、安装部署
 
@@ -60,8 +48,10 @@ time-capsule/
 上传新版本后请先「重载主题配置」。
 
 **基础文案**
-- 顶栏印章字、站点题记/格言、页脚格言、归档副标题、备案号、是否显示 Powered by Halo
+- 顶栏题记/格言、页脚格言、归档副标题、备案号、是否显示 Powered by Halo
+- 顶栏朱砂印章为主题固定图标（「時」），不再可配置字/字体
 - **站点标题**不在主题里改，而在「系统设置 → 基本设置」
+- **正文字体**默认「书卷」；设置里还可选全卷 / 墨韵（霞鹜文楷优化）/ 编辑器 / 自定义上传
 - **书单墙阅读分类别名**：默认 `yue-du`。该一级分类下每个**子分类 = 一本书**
 
 **如何把文章归进某本书（例：稀罕）**

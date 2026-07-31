@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="fonts"
+          th:with="scheme=${theme.config.typography?.scheme ?: 'library'},
+                   serifName=${not #strings.isEmpty(theme.config.typography?.custom_serif_name) ? theme.config.typography.custom_serif_name : 'TC Serif'},
+                   sansName=${not #strings.isEmpty(theme.config.typography?.custom_sans_name) ? theme.config.typography.custom_sans_name : 'TC Sans'},
+                   serifUrl=${theme.config.typography?.custom_serif},
+                   sansUrl=${theme.config.typography?.custom_sans}">
+
+  <link rel="preload" th:href="@{/assets/fonts/noto-sans-sc-400.woff2}" as="font" type="font/woff2" crossorigin />
+  <link th:if="${scheme == 'wenkai'}" rel="preload" th:href="@{/assets/fonts/lxgw-wenkai-500.woff2}" as="font" type="font/woff2" crossorigin />
+  <link th:unless="${scheme == 'wenkai' or scheme == 'custom'}" rel="preload" th:href="@{/assets/fonts/noto-serif-sc-400.woff2}" as="font" type="font/woff2" crossorigin />
+  <link th:if="${scheme == 'custom'}" rel="preload" th:href="@{/assets/fonts/noto-serif-sc-400.woff2}" as="font" type="font/woff2" crossorigin />
+
+  <th:block th:if="${scheme == 'custom' and not #strings.isEmpty(serifUrl)}"
+            th:with="fmt=${#strings.endsWith(serifUrl,'.woff2') ? 'woff2' : (#strings.endsWith(serifUrl,'.woff') ? 'woff' : (#strings.endsWith(serifUrl,'.otf') ? 'opentype' : 'truetype'))}">
+    <style th:utext="|@font-face{font-family:'${serifName}';src:url('${serifUrl}') format('${fmt}');font-weight:100 900;font-style:normal;font-display:swap;}|"></style>
+  </th:block>
+  <th:block th:if="${scheme == 'custom' and not #strings.isEmpty(sansUrl)}"
+            th:with="fmt=${#strings.endsWith(sansUrl,'.woff2') ? 'woff2' : (#strings.endsWith(sansUrl,'.woff') ? 'woff' : (#strings.endsWith(sansUrl,'.otf') ? 'opentype' : 'truetype'))}">
+    <style th:utext="|@font-face{font-family:'${sansName}';src:url('${sansUrl}') format('${fmt}');font-weight:100 900;font-style:normal;font-display:swap;}|"></style>
+  </th:block>
+
+  <style th:if="${scheme == 'custom' and not #strings.isEmpty(serifUrl) and not #strings.isEmpty(sansUrl)}"
+         th:utext="|:root{--serif:'${serifName}','Noto Serif SC',serif;--sans:'${sansName}','Noto Sans SC',sans-serif;}|"></style>
+  <style th:if="${scheme == 'custom' and not #strings.isEmpty(serifUrl) and #strings.isEmpty(sansUrl)}"
+         th:utext="|:root{--serif:'${serifName}','Noto Serif SC',serif;--sans:'${serifName}','Noto Sans SC',sans-serif;}|"></style>
+  <style th:if="${scheme == 'custom' and #strings.isEmpty(serifUrl) and not #strings.isEmpty(sansUrl)}"
+         th:utext="|:root{--sans:'${sansName}','Noto Sans SC',sans-serif;}|"></style>
+
+  <style th:if="${scheme == 'literary'}">
+    :root{
+      --font-heading: var(--serif);
+      --font-body: var(--serif);
+      --font-ui: var(--serif);
+    }
+  </style>
+  <style th:if="${scheme == 'editor'}">
+    :root{
+      --font-heading: var(--sans);
+      --font-body: var(--serif);
+      --font-ui: var(--sans);
+    }
+  </style>
+  <!-- 墨韵：霞鹜文楷 + 无衬线界面，并微调字重/字距/长文行高 -->
+  <style th:if="${scheme == 'wenkai'}">
+    :root{
+      --serif: "LXGW WenKai", "Noto Serif SC", "Source Han Serif SC", serif;
+      --font-heading: var(--serif);
+      --font-body: var(--serif);
+      --font-ui: var(--sans);
+    }
+    .brand-text h1,
+    .page-title,
+    .book-info h1,
+    .cat-card .cn,
+    .featured-item .ft,
+    .stream-main .st,
+    .cat-post-item .ct,
+    .archive-year,
+    .archive-item .at,
+    .timeline-item .tt,
+    .book-item .bt{
+      font-weight: 500;
+      letter-spacing: 0.015em;
+    }
+    .brand-text .tag,
+    .manifesto{
+      font-weight: 300;
+      letter-spacing: 0.05em;
+    }
+    .post-content{
+      font-size: 19px;
+      line-height: 1.95;
+      max-width: 36em;
+    }
+    .post-content h1,
+    .post-content h2,
+    .post-content h3,
+    .post-content h4{
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .sec-label{
+      letter-spacing: 0.14em;
+    }
+  </style>
+</th:block>
+</body>
+</html>

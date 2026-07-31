@@ -1,0 +1,17 @@
+apiVersion: v1alpha1
+kind: AnnotationSetting
+metadata:
+  name: time-capsule-category-annotation-setting
+spec:
+  targetRef:
+    group: content.halo.run
+    kind: Category
+  formSchema:
+    - $formkit: text
+      name: tc.xybkwd.top/book-author
+      label: 书籍作者
+      help: 仅「阅读」下的书目分类需要填。半自动脚本也会写入此字段。
+    - $formkit: text
+      name: tc.xybkwd.top/book-isbn
+      label: ISBN（可选）
+      help: 方便以后用脚本按 ISBN 重新拉取封面/简介。

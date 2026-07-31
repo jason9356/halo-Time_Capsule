@@ -8,20 +8,6 @@ spec:
       label: 基础文案
       formSchema:
         - $formkit: text
-          name: seal_char
-          label: 顶栏印章字
-          help: 站名左侧朱砂印章里的字。留空则自动取站点标题的第一个字
-        - $formkit: radio
-          name: seal_script
-          label: 印章字体（验证用，优先读本机字体）
-          value: li
-          options:
-            - label: 隶书（Windows 常见「隶书/LiSu」，较稳）
-              value: li
-            - label: 小篆（若本机有篆体则用之；否则回退隶书）
-              value: zhuan
-          help: 不依赖外网字体。小篆需系统已安装相关字体才会像篆书。
-        - $formkit: text
           name: slogan
           label: 站点题记 / 格言
           help: 显示在站点名称下方。站点标题请到「系统设置 → 基本设置」修改
@@ -35,10 +21,20 @@ spec:
           value: 按时间回看这一路写下的字。
           help: 归档页标题下方的说明；留空则不显示
         - $formkit: text
+          name: moments_desc
+          label: 瞬间页说明
+          value: 随手记下的碎片。之后可由灵感匣同步到这里。
+          help: 显示在瞬间列表标题下方；留空则不显示
+        - $formkit: text
           name: book_category_slug
           label: 书单墙：阅读分类别名（slug）
           value: yue-du
           help: 必填。须与后台「文章→分类」里作为书单根的那一级分类的别名完全一致（打开分类编辑可见）。书单墙只显示它下面的子分类；「全部书卷」也跳到这个分类页，不会跳到全站分类。
+        - $formkit: text
+          name: home_category_slugs
+          label: 首页「门径」五个别名（逗号分隔）
+          value: yue-du,sui-gan,writing,investing,tech
+          help: 按顺序展示：阅读、随感、散文（写作）、交易、技术。须与分类别名一致；留空则用上述默认五门。
         - $formkit: text
           name: book_wall_more
           label: 书单墙底部链接文案
@@ -75,7 +71,17 @@ spec:
       formSchema:
         - $formkit: text
           name: categories
-          label: 首页「全部分类」
+          label: 首页门径区块标题
+          value: 门径
+          help: 首页五门分类上方的小标题
+        - $formkit: text
+          name: categories_more
+          label: 首页门径「更多」链接文案
+          value: 更多分类 →
+          help: 链到全部分类页
+        - $formkit: text
+          name: categories_page_title
+          label: 分类集合页标题
           value: 全部分类
         - $formkit: text
           name: featured
@@ -105,6 +111,11 @@ spec:
           name: sidebar_related
           label: 文章侧栏「相关文章」
           value: 相关文章
+        - $formkit: text
+          name: moments_title
+          label: 瞬间页标题
+          value: 瞬间
+          help: 需安装并启用 Halo「瞬间」插件；页脚也会显示同名链接
 
     - group: layout
       label: 显示开关
@@ -125,6 +136,68 @@ spec:
           name: show_footer_tags
           label: 页脚显示「标签」链接
           value: true
+
+    - group: typography
+      label: 字体
+      formSchema:
+        - $formkit: radio
+          name: scheme
+          id: font_scheme
+          key: font_scheme
+          label: 字体搭配
+          value: library
+          options:
+            - label: 书卷（默认）— 标题/正文用衬线，界面用无衬线
+              value: library
+            - label: 全卷 — 标题、正文、界面都用衬线，更沉浸
+              value: literary
+            - label: 墨韵 — 霞鹜文楷读文 + 无衬线界面（文气优化版）
+              value: wenkai
+            - label: 编辑器 — 标题与界面用无衬线，正文仍用衬线
+              value: editor
+            - label: 自定义 — 上传自己的字体文件
+              value: custom
+          help: 「书卷」为默认推荐。「墨韵」用主题自带霞鹜文楷做标题/正文，字重更松、更适合长文。自定义可上传 woff2/ttf。
+        - $formkit: attachment
+          name: custom_serif
+          label: 衬线字体（标题 + 正文）
+          if: "$get(font_scheme).value === 'custom'"
+          accepts:
+            - "font/woff2"
+            - "font/woff"
+            - "font/ttf"
+            - "font/otf"
+            - "application/font-woff2"
+            - "application/font-woff"
+            - "application/x-font-ttf"
+            - "application/vnd.ms-opentype"
+          help: 建议上传 .woff2。用于站名、列表标题、文章正文等。
+        - $formkit: attachment
+          name: custom_sans
+          label: 无衬线字体（界面元信息）
+          if: "$get(font_scheme).value === 'custom'"
+          accepts:
+            - "font/woff2"
+            - "font/woff"
+            - "font/ttf"
+            - "font/otf"
+            - "application/font-woff2"
+            - "application/font-woff"
+            - "application/x-font-ttf"
+            - "application/vnd.ms-opentype"
+          help: 建议 .woff2。用于日期、标签、侧栏小字等。可与衬线上传同一文件。
+        - $formkit: text
+          name: custom_serif_name
+          label: 衬线字体族名（可选）
+          if: "$get(font_scheme).value === 'custom'"
+          value: TC Serif
+          help: 一般保持默认即可。若本机已安装同款字体，可填真实字体名以便优先用本机。
+        - $formkit: text
+          name: custom_sans_name
+          label: 无衬线字体族名（可选）
+          if: "$get(font_scheme).value === 'custom'"
+          value: TC Sans
+          help: 一般保持默认即可。
 
     - group: navidrome
       label: 音乐播放

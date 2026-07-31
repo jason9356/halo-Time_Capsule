@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<header class="site-header" th:fragment="header"
-        th:with="sealChar=${not #strings.isEmpty(theme.config.basic?.seal_char) ? theme.config.basic.seal_char : (#strings.isEmpty(site.title) ? '书' : site.title.substring(0,1))},
-                 sealScript=${theme.config.basic?.seal_script ?: 'li'}">
+<header class="site-header" th:fragment="header">
   <a class="brand" th:href="@{/}">
-    <div class="seal" th:classappend="${sealScript == 'zhuan' ? 'seal-zhuan' : 'seal-li'}" th:text="${sealChar}" th:attr="aria-label=${'印章 ' + sealChar}">书</div>
+    <img class="seal" th:src="@{/assets/img/seal.png}" width="58" height="58" alt="时间容器" />
     <div class="brand-text">
       <h1 th:text="${site.title}">站点标题</h1>
       <div class="tag" th:if="${not #strings.isEmpty(theme.config.basic?.slogan)}" th:text="${theme.config.basic.slogan}">题记</div>

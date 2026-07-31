@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
-<head th:replace="~{modules/head :: head('全部分类')}"></head>
+<head th:replace="~{modules/head :: head(${theme.config.labels?.categories_page_title ?: '全部分类'})}"></head>
 <body>
 <div id="tc-page">
 <div class="container">
@@ -8,14 +8,14 @@
 
   <div class="page-head">
     <div class="breadcrumb"><a th:href="@{/}">首页</a><span class="sep">/</span>分类</div>
-    <div class="page-title">全部分类</div>
+    <div class="page-title" th:text="${theme.config.labels?.categories_page_title ?: '全部分类'}">全部分类</div>
   </div>
 
   <div class="cat-grid" style="padding:28px 0 50px;">
     <a class="cat-card" th:each="cat : ${categoryFinder.listAsTree()}" th:href="@{${cat.status.permalink}}">
-      <div class="cn" th:text="${cat.spec.displayName}">分类</div>
+      <div class="cn" th:text="${#strings.replace(#strings.replace(cat.spec.displayName,'《',''),'》','')}">分类</div>
       <div class="cc">
-        <span th:if="${not #lists.isEmpty(cat.children)}" th:text="${#lists.size(cat.children)} + ' 书卷 · '"></span><span th:text="${cat.postCount} + ' 篇'"></span>
+        <span th:if="${not #lists.isEmpty(cat.children)}" th:text="${#lists.size(cat.children)} + ' 书卷 · '"></span><span th:text="${cat.postCount ?: 0} + ' 篇'"></span>
       </div>
     </a>
   </div>

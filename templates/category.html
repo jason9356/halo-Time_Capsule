@@ -39,6 +39,8 @@
     </div>
     <div class="book-info">
       <h1 th:text="${bookTitle}">书名</h1>
+      <div class="ba" th:if="${not #strings.isEmpty(category.metadata.annotations?.['tc.xybkwd.top/book-author'])}"
+           th:text="${category.metadata.annotations['tc.xybkwd.top/book-author']}">作者</div>
       <div class="bm" th:text="${(category.postCount ?: 0)} + ' ' + ${theme.config.basic?.book_count_suffix ?: '篇笔记'}">0 篇笔记</div>
       <div class="bi" th:if="${category.spec.description}" th:text="${category.spec.description}"></div>
     </div>

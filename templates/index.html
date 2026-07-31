@@ -6,16 +6,24 @@
 <div class="container">
   <header th:replace="~{modules/header :: header}"></header>
 
-  <section class="category-nav" th:if="${theme.config.layout?.show_category_nav != false}">
-    <div class="sec-label" th:text="${theme.config.labels?.categories ?: '全部分类'}">全部分类</div>
+  <section class="category-nav" th:if="${theme.config.layout?.show_category_nav != false}"
+           th:with="homeSlugs=${#strings.arraySplit((#strings.isEmpty(theme.config.basic?.home_category_slugs) ? 'yue-du,sui-gan,writing,investing,tech' : theme.config.basic.home_category_slugs), ',')}">
+    <div class="sec-label" th:text="${theme.config.labels?.categories ?: '门径'}">门径</div>
     <div class="cat-grid">
-      <a class="cat-card" th:each="cat : ${categoryFinder.listAsTree()}" th:href="@{${cat.status.permalink}}">
-        <div class="cn" th:text="${#strings.replace(#strings.replace(cat.spec.displayName,'《',''),'》','')}">阅读</div>
-        <div class="cc">
-          <span th:if="${not #lists.isEmpty(cat.children)}" th:text="${#lists.size(cat.children)} + ' 书卷 · '"></span><span th:text="${cat.postCount} + ' 篇'"></span>
-        </div>
-      </a>
+      <th:block th:each="slug,iter : ${homeSlugs}" th:if="${iter.count <= 5 and not #strings.isEmpty(#strings.trim(slug))}">
+        <th:block th:each="cat : ${categoryFinder.listAsTree()}"
+                  th:if="${cat.spec.slug == #strings.trim(slug) or cat.spec.displayName == #strings.trim(slug)}">
+          <a class="cat-card" th:href="@{${cat.status.permalink}}">
+            <div class="cn" th:text="${#strings.replace(#strings.replace(cat.spec.displayName,'《',''),'》','')}">阅读</div>
+            <div class="cc">
+              <span th:if="${not #lists.isEmpty(cat.children)}" th:text="${#lists.size(cat.children)} + ' 书卷 · '"></span><span th:text="${cat.postCount ?: 0} + ' 篇'"></span>
+            </div>
+          </a>
+        </th:block>
+      </th:block>
     </div>
+    <a class="cat-more" th:href="@{${site.routes.categoriesUri}}"
+       th:text="${theme.config.labels?.categories_more ?: '更多分类 →'}">更多分类 →</a>
   </section>
 
   <section class="featured"

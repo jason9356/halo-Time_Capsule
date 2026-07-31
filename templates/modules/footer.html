@@ -16,6 +16,8 @@
     <a th:href="@{${site.routes.archivesUri}}">归档</a>
     <a th:href="@{${site.routes.categoriesUri}}">分类</a>
     <a th:if="${theme.config.layout?.show_footer_tags != false}" th:href="@{${site.routes.tagsUri}}">标签</a>
+    <a th:if="${pluginFinder.available('PluginMoments')}" th:href="@{/moments}"
+       th:text="${theme.config.labels?.moments_title ?: '瞬间'}">瞬间</a>
   </div>
 </footer>
 
