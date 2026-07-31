@@ -1,123 +1,454 @@
 /* ============================================================
-   时间容器 · Navidrome 迷你播放器
-   数据：Navidrome (Subsonic API)，播放「博客背景音乐」歌单
-   认证：enc:hex 编码密码（请务必使用博客专用只读账号）
-   行为：不自动播放，访客点击才放；localStorage 记忆曲目与音量
+   时间容器 · 全站听乐（悬浮条 + 首页大卡，软跳转不断歌）
    ============================================================ */
 (function () {
-  var cfg = window.__TC_NAVIDROME__;
-  var el = document.getElementById('tc-player');
-  if (!el) return;
-  if (!cfg || !cfg.baseUrl || !cfg.playlistId || !cfg.username || !cfg.password) {
-    el.classList.add('hidden');
+  if (window.__TC_PLAYER__) return;
+  window.__TC_PLAYER__ = true;
+
+  var raw = window.__TC_NAVIDROME__ || {};
+  function clean(v) {
+    if (v == null) return '';
+    var s = String(v).trim();
+    if (!s || s === 'null' || s === 'undefined') return '';
+    return s;
+  }
+  var cfg = {
+    baseUrl: clean(raw.baseUrl).replace(/\/+$/, ''),
+    username: clean(raw.username),
+    password: clean(raw.password),
+    playlistId: clean(raw.playlistId),
+    autoplay: raw.autoplay === true || raw.autoplay === 'true'
+  };
+
+  var dock = document.getElementById('tc-dock');
+  if (!dock) return;
+
+  function qsAll(sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  }
+  function setText(sel, text) {
+    qsAll('[data-tc="' + sel + '"]').forEach(function (n) { n.textContent = text; });
+  }
+  function setHtmlHidden(sel, hidden) {
+    qsAll('[data-tc="' + sel + '"]').forEach(function (n) { n.hidden = !!hidden; });
+  }
+
+  function showError(msg) {
+    qsAll('[data-tc="error"]').forEach(function (n) {
+      n.hidden = false;
+      n.textContent = msg;
+    });
+    setText('track', '音乐服务未连接');
+    setText('artist', '见说明');
+    console.error('[时间容器]', msg);
+  }
+
+  if (!cfg.baseUrl || !cfg.playlistId) {
+    showError('主题设置缺少 Navidrome 地址或歌单 ID。');
+    return;
+  }
+  if (!cfg.username || !cfg.password) {
+    showError('主题设置缺少用户名或密码（重载主题配置后需重新填写）。');
     return;
   }
 
-  var playBtn = document.getElementById('tc-play');
-  var prevBtn = document.getElementById('tc-prev');
-  var nextBtn = document.getElementById('tc-next');
-  var volEl = document.getElementById('tc-vol');
-  var trackEl = document.getElementById('tc-track');
-  var iconPlay = document.getElementById('tc-icon-play');
-  var iconPause = document.getElementById('tc-icon-pause');
-
-  /* UTF-8 安全的 hex 编码（Subsonic enc: 认证） */
   function hexEncode(str) {
     var bytes = new TextEncoder().encode(String(str));
     var h = '';
-    for (var i = 0; i < bytes.length; i++) { h += bytes[i].toString(16).padStart(2, '0'); }
+    for (var i = 0; i < bytes.length; i++) h += bytes[i].toString(16).padStart(2, '0');
     return h;
   }
 
-  var base = String(cfg.baseUrl).replace(/\/+$/, '') + '/rest/';
+  var base = cfg.baseUrl + '/rest/';
   function authQuery(extra) {
     var q = 'u=' + encodeURIComponent(cfg.username) +
             '&p=' + encodeURIComponent('enc:' + hexEncode(cfg.password)) +
             '&v=1.16.1&c=time-capsule&f=json';
     return extra ? q + '&' + extra : q;
   }
+  function streamUrl(id) {
+    return base + 'stream.view?' + authQuery(
+      'id=' + encodeURIComponent(id) + '&format=mp3&maxBitRate=320'
+    );
+  }
+  function coverUrl(coverId, size) {
+    if (!coverId) return '';
+    return base + 'getCoverArt.view?' + authQuery('id=' + encodeURIComponent(coverId) + '&size=' + (size || 300));
+  }
 
   var audio = new Audio();
-  audio.preload = 'none';
+  audio.preload = 'metadata';
   var tracks = [];
   var idx = 0;
+  var wantPlay = false;
+  var resumeAt = 0;
+  var lastPersist = 0;
 
   function save(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
   function read(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
 
-  function setIcon(playing) {
-    if (iconPlay) iconPlay.style.display = playing ? 'none' : '';
-    if (iconPause) iconPause.style.display = playing ? '' : 'none';
+  function persistNow() {
+    save('tc-track-idx', String(idx));
+    save('tc-playing', wantPlay && !audio.paused ? '1' : '0');
+    save('tc-current-time', String(audio.currentTime || 0));
+    if (arguments.length && typeof arguments[0] === 'number') {
+      /* no-op placeholder */
+    }
   }
 
-  function renderTrack() {
+  function setIcon(playing) {
+    qsAll('[data-tc="icon-play"]').forEach(function (n) { n.style.display = playing ? 'none' : ''; });
+    qsAll('[data-tc="icon-pause"]').forEach(function (n) { n.style.display = playing ? '' : 'none'; });
+    dock.classList.toggle('is-playing', !!playing);
+    qsAll('[data-tc-home-panel]').forEach(function (n) { n.classList.toggle('is-playing', !!playing); });
+    document.body.classList.toggle('tc-has-dock', true);
+  }
+
+  function fmtTime(sec) {
+    if (!isFinite(sec) || sec < 0) return '0:00';
+    sec = Math.floor(sec);
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function padNum(n) { return (n < 10 ? '0' : '') + n; }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function setCover(coverId) {
+    var url = coverUrl(coverId, 400);
+    var thumb = coverUrl(coverId, 96);
+    qsAll('[data-tc="cover"]').forEach(function (img) {
+      var isDock = img.classList.contains('tc-dock-cover');
+      var src = isDock ? thumb : url;
+      var fallback = img.parentNode && img.parentNode.querySelector('[data-tc="cover-fallback"]');
+      if (!src) {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+        if (fallback) fallback.style.display = '';
+        return;
+      }
+      img.onload = function () {
+        img.style.display = '';
+        if (fallback) fallback.style.display = 'none';
+      };
+      img.onerror = function () {
+        img.style.display = 'none';
+        if (fallback) fallback.style.display = '';
+      };
+      img.alt = (tracks[idx] && tracks[idx].album) || '专辑封面';
+      img.src = src;
+    });
+  }
+
+  function renderNow() {
     if (!tracks.length) return;
     var t = tracks[idx];
-    trackEl.textContent = (t.title || '未知曲目') + (t.artist ? ' · ' + t.artist : '');
-    trackEl.title = trackEl.textContent;
+    setText('track', t.title || '未知曲目');
+    setText('artist', t.artist || '未知艺人');
+    setText('album', t.album || '');
+    setCover(t.coverArt || t.id);
+    if (t.duration) setText('dur', fmtTime(t.duration));
   }
 
-  function loadTrack(i, autoplay) {
-    if (!tracks.length) return;
-    idx = ((i % tracks.length) + tracks.length) % tracks.length;
-    save('tc-track-idx', String(idx));
-    renderTrack();
-    audio.src = base + 'stream.view?' + authQuery('id=' + encodeURIComponent(tracks[idx].id));
-    if (autoplay) { play(); } else { setIcon(false); }
+  function renderList() {
+    qsAll('[data-tc="tracklist"]').forEach(function (listEl) {
+      listEl.innerHTML = '';
+      tracks.forEach(function (t, i) {
+        var li = document.createElement('li');
+        li.className = 'listening-item' + (i === idx ? ' is-current' : '');
+        li.setAttribute('role', 'button');
+        li.tabIndex = 0;
+        li.setAttribute('data-tc-track-i', String(i));
+        var thumb = coverUrl(t.coverArt || t.id, 80);
+        li.innerHTML =
+          '<span class="lthumb">' +
+            (thumb ? '<img src="' + escapeHtml(thumb) + '" alt="" loading="lazy" />' : '<span class="lthumb-ph">♪</span>') +
+          '</span>' +
+          '<span class="lmain">' +
+            '<span class="lt">' + escapeHtml(t.title || '未知曲目') + '</span>' +
+            '<span class="la">' + escapeHtml((t.artist || '') + (t.album ? ' · ' + t.album : '')) + '</span>' +
+          '</span>' +
+          '<span class="ln">' + padNum(i + 1) + '</span>';
+        listEl.appendChild(li);
+      });
+    });
+  }
+
+  function highlightList() {
+    qsAll('[data-tc="tracklist"] .listening-item').forEach(function (item) {
+      var i = parseInt(item.getAttribute('data-tc-track-i'), 10);
+      item.classList.toggle('is-current', i === idx);
+    });
   }
 
   function play() {
-    audio.play().then(function () { setIcon(true); }).catch(function () { setIcon(false); });
+    wantPlay = true;
+    save('tc-playing', '1');
+    var p = audio.play();
+    if (p && p.then) {
+      p.then(function () { setIcon(true); }).catch(function () {
+        setIcon(false);
+        save('tc-playing', '0');
+      });
+    }
   }
-  function pause() { audio.pause(); setIcon(false); }
+  function pause() {
+    wantPlay = false;
+    save('tc-playing', '0');
+    persistNow();
+    audio.pause();
+    setIcon(false);
+  }
 
-  /* 事件 */
-  if (playBtn) playBtn.addEventListener('click', function (e) {
-    e.stopPropagation();
+  function loadTrack(i, autoplay, seekTo) {
     if (!tracks.length) return;
-    if (audio.paused) { if (!audio.src) loadTrack(idx, true); else play(); } else { pause(); }
-  });
-  if (nextBtn) nextBtn.addEventListener('click', function (e) { e.stopPropagation(); if (tracks.length) loadTrack(idx + 1, !audio.paused); });
-  if (prevBtn) prevBtn.addEventListener('click', function (e) { e.stopPropagation(); if (tracks.length) loadTrack(idx - 1, !audio.paused); });
-  if (volEl) volEl.addEventListener('input', function () {
-    audio.volume = volEl.value / 100;
-    save('tc-volume', volEl.value);
-  });
-  audio.addEventListener('ended', function () { loadTrack(idx + 1, true); });
-  audio.addEventListener('play', function () { setIcon(true); });
-  audio.addEventListener('pause', function () { setIcon(false); });
+    idx = ((i % tracks.length) + tracks.length) % tracks.length;
+    save('tc-track-idx', String(idx));
+    renderNow();
+    highlightList();
+    wantPlay = !!autoplay;
+    qsAll('[data-tc="progress"]').forEach(function (n) { n.style.width = '0%'; });
+    setText('cur', '0:00');
+    audio.src = streamUrl(tracks[idx].id);
+    audio.load();
+    var target = seekTo > 0 ? seekTo : 0;
+    var onReady = function () {
+      audio.removeEventListener('canplay', onReady);
+      if (target > 0 && isFinite(audio.duration) && target < audio.duration - 1) {
+        try { audio.currentTime = target; } catch (e) {}
+      }
+      if (wantPlay) play();
+    };
+    audio.addEventListener('canplay', onReady);
+    if (autoplay) play();
+    else setIcon(false);
+  }
 
-  /* 恢复音量 */
+  /* 事件委托：首页大卡软跳转后仍可用 */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-tc-action]');
+    if (btn) {
+      var act = btn.getAttribute('data-tc-action');
+      if (act === 'toggle') {
+        if (!tracks.length) return;
+        if (audio.paused) {
+          if (!audio.src) loadTrack(idx, true);
+          else play();
+        } else pause();
+        return;
+      }
+      if (act === 'next' && tracks.length) { loadTrack(idx + 1, true); return; }
+      if (act === 'prev' && tracks.length) { loadTrack(idx - 1, true); return; }
+      if (act === 'toggle-list') {
+        var sheet = document.getElementById('tc-dock-sheet');
+        if (sheet) sheet.hidden = !sheet.hidden;
+        dock.classList.toggle('is-open', sheet && !sheet.hidden);
+        return;
+      }
+    }
+    var item = e.target.closest('[data-tc-track-i]');
+    if (item) {
+      var i = parseInt(item.getAttribute('data-tc-track-i'), 10);
+      if (!isNaN(i)) loadTrack(i, true);
+    }
+  });
+
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!el || el.getAttribute('data-tc') !== 'vol') return;
+    audio.volume = el.value / 100;
+    save('tc-volume', el.value);
+    qsAll('[data-tc="vol"]').forEach(function (n) {
+      if (n !== el) n.value = el.value;
+    });
+  });
+
+  audio.addEventListener('ended', function () {
+    if (tracks.length > 1) loadTrack(idx + 1, true);
+    else if (tracks.length === 1) loadTrack(0, true);
+  });
+  audio.addEventListener('play', function () { setIcon(true); save('tc-playing', '1'); });
+  audio.addEventListener('pause', function () {
+    if (!wantPlay) setIcon(false);
+    persistNow();
+  });
+  audio.addEventListener('timeupdate', function () {
+    setText('cur', fmtTime(audio.currentTime));
+    if (audio.duration) {
+      var pct = Math.min(100, (audio.currentTime / audio.duration) * 100) + '%';
+      qsAll('[data-tc="progress"]').forEach(function (n) { n.style.width = pct; });
+    }
+    var now = Date.now();
+    if (now - lastPersist > 2000) {
+      lastPersist = now;
+      persistNow();
+    }
+  });
+  audio.addEventListener('loadedmetadata', function () {
+    setText('dur', fmtTime(audio.duration));
+  });
+  audio.addEventListener('error', function () {
+    console.warn('[时间容器] 曲目流加载失败');
+    if (tracks.length > 1 && wantPlay) loadTrack(idx + 1, true);
+  });
+
+  window.addEventListener('pagehide', persistNow);
+  window.addEventListener('beforeunload', persistNow);
+
   var savedVol = read('tc-volume');
-  if (savedVol !== null && volEl) { volEl.value = savedVol; audio.volume = savedVol / 100; }
-  else { audio.volume = 0.8; }
+  if (savedVol !== null) {
+    audio.volume = savedVol / 100;
+    qsAll('[data-tc="vol"]').forEach(function (n) { n.value = savedVol; });
+  } else audio.volume = 0.8;
 
-  /* 拉取歌单 */
-  trackEl.textContent = '博客背景音乐 · 加载中…';
+  setText('track', '正在读取歌单…');
+  setText('artist', cfg.baseUrl.replace(/^https?:\/\//, ''));
+
   var listUrl = base + 'getPlaylist.view?' + authQuery('id=' + encodeURIComponent(cfg.playlistId));
-  console.log('[时间容器] 拉取歌单 →', cfg.baseUrl, '歌单 ID:', cfg.playlistId);
   fetch(listUrl)
-    .then(function (r) { if (!r.ok) { throw new Error('HTTP ' + r.status); } return r.json(); })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then(function (data) {
       var resp = data && data['subsonic-response'];
-      if (!resp) { throw new Error('响应格式异常'); }
-      if (resp.status !== 'ok') { throw new Error('Subsonic 错误 ' + (resp.error && resp.error.code) + '：' + (resp.error && resp.error.message)); }
-      if (!resp.playlist) { throw new Error('未取到歌单'); }
-      tracks = resp.playlist.entry || [];
-      if (!tracks.length) { console.warn('[时间容器] 歌单为空'); el.classList.add('hidden'); return; }
-      console.log('[时间容器] 歌单已加载，共 ' + tracks.length + ' 首');
+      if (!resp) throw new Error('响应不是 Subsonic JSON');
+      if (resp.status !== 'ok') {
+        throw new Error('认证/歌单错误 ' + (resp.error && resp.error.code) + '：' + (resp.error && resp.error.message));
+      }
+      if (!resp.playlist) throw new Error('未取到歌单，请核对歌单 ID');
+      var entry = resp.playlist.entry || [];
+      tracks = Array.isArray(entry) ? entry : [entry];
+      if (!tracks.length) {
+        setText('track', '歌单为空');
+        setText('artist', '去 Navidrome 加几首歌');
+        return;
+      }
+      setHtmlHidden('error', true);
       var savedIdx = parseInt(read('tc-track-idx') || '0', 10);
       idx = (isNaN(savedIdx) || savedIdx >= tracks.length) ? 0 : savedIdx;
-      renderTrack();
+      resumeAt = parseFloat(read('tc-current-time') || '0') || 0;
+      var wasPlaying = read('tc-playing') === '1';
+      renderList();
+      renderNow();
+      highlightList();
       setIcon(false);
-      /* 预载当前曲源但不播放 */
-      audio.src = base + 'stream.view?' + authQuery('id=' + encodeURIComponent(tracks[idx].id));
-      if (cfg.autoplay === true || cfg.autoplay === 'true') { play(); }
+      var shouldPlay = wasPlaying || cfg.autoplay;
+      loadTrack(idx, shouldPlay, resumeAt);
     })
     .catch(function (err) {
-      console.error('[时间容器] 歌单加载失败：', err && err.message, '\n可能原因：① Navidrome 未开 CORS ② 博客是 HTTPS 而 Navidrome 是 HTTP（混合内容被拦）③ 账号或歌单 ID 有误');
-      trackEl.textContent = '音乐服务未连接';
-      el.title = '无法连接 Navidrome（按 F12 看 Console 有具体原因）';
-      setIcon(false);
+      var tip = (err && err.message) || '未知错误';
+      if (/Failed to fetch|NetworkError|Load failed/i.test(tip)) {
+        showError('无法连接音乐服务。请把地址改为 https://blog.xybkwd.top/tc-music 后保存并刷新。');
+        return;
+      }
+      showError(tip + ' · 核对：地址、用户名密码、歌单 ID');
     });
+
+  /* ---------- 软跳转：只换 #tc-page，dock/audio 常驻 ---------- */
+  var navigating = false;
+
+  function sameOriginNav(url) {
+    try {
+      var u = new URL(url, location.href);
+      if (u.origin !== location.origin) return false;
+      if (u.pathname.indexOf('/console') === 0) return false;
+      if (/\.(xml|zip|pdf|jpg|jpeg|png|gif|webp|mp3|mp4)$/i.test(u.pathname)) return false;
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function runInlineScripts(root) {
+    qsAll('script', root).forEach(function (old) {
+      var s = document.createElement('script');
+      if (old.src) {
+        s.src = old.src;
+        s.async = false;
+      } else {
+        s.textContent = old.textContent;
+      }
+      Array.prototype.forEach.call(old.attributes, function (a) {
+        if (a.name !== 'src') s.setAttribute(a.name, a.value);
+      });
+      old.parentNode.replaceChild(s, old);
+    });
+  }
+
+  function afterPageSwap() {
+    /* 首页大卡可能新插入：补绘列表与当前曲 */
+    if (tracks.length) {
+      renderList();
+      renderNow();
+      highlightList();
+      setIcon(!audio.paused);
+      var vol = read('tc-volume');
+      if (vol !== null) qsAll('[data-tc="vol"]').forEach(function (n) { n.value = vol; });
+    }
+    if (window.__TC_BIND_THEME__) window.__TC_BIND_THEME__();
+    window.scrollTo(0, 0);
+  }
+
+  function navigate(href, push) {
+    if (navigating) return;
+    navigating = true;
+    persistNow();
+    document.body.classList.add('tc-navigating');
+    fetch(href, { credentials: 'same-origin', headers: { 'X-Requested-With': 'TCSoftNav' } })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var next = doc.getElementById('tc-page');
+        var cur = document.getElementById('tc-page');
+        if (!next || !cur) {
+          location.href = href;
+          return;
+        }
+        cur.innerHTML = next.innerHTML;
+        runInlineScripts(cur);
+        document.title = doc.title || document.title;
+        var theme = doc.documentElement.getAttribute('data-theme');
+        if (theme) document.documentElement.setAttribute('data-theme', theme);
+        if (push !== false) history.pushState({ tc: 1 }, '', href);
+        afterPageSwap();
+      })
+      .catch(function () { location.href = href; })
+      .finally(function () {
+        navigating = false;
+        document.body.classList.remove('tc-navigating');
+      });
+  }
+
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest('a[href]');
+    if (!a) return;
+    if (a.target && a.target !== '_self') return;
+    if (a.hasAttribute('download')) return;
+    if (a.closest('#tc-dock')) return;
+    var href = a.href;
+    if (!sameOriginNav(href)) return;
+    var u = new URL(href, location.href);
+    if (u.hash && u.pathname === location.pathname && u.search === location.search) return;
+    e.preventDefault();
+    navigate(href, true);
+  });
+
+  window.addEventListener('popstate', function () {
+    navigate(location.href, false);
+  });
+
+  /* 首页大卡软跳转后出现时，由 afterPageSwap 重绘 */
+  window.__TC_PLAYER_REFRESH__ = afterPageSwap;
 })();

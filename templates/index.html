@@ -2,15 +2,15 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
 <head th:replace="~{modules/head :: head(null)}"></head>
 <body>
+<div id="tc-page">
 <div class="container">
   <header th:replace="~{modules/header :: header}"></header>
 
-  <!-- 分类卡片导航 -->
   <section class="category-nav" th:if="${theme.config.layout?.show_category_nav != false}">
     <div class="sec-label" th:text="${theme.config.labels?.categories ?: '全部分类'}">全部分类</div>
     <div class="cat-grid">
       <a class="cat-card" th:each="cat : ${categoryFinder.listAsTree()}" th:href="@{${cat.status.permalink}}">
-        <div class="cn" th:text="${cat.spec.displayName}">阅读</div>
+        <div class="cn" th:text="${#strings.replace(#strings.replace(cat.spec.displayName,'《',''),'》','')}">阅读</div>
         <div class="cc">
           <span th:if="${not #lists.isEmpty(cat.children)}" th:text="${#lists.size(cat.children)} + ' 书卷 · '"></span><span th:text="${cat.postCount} + ' 篇'"></span>
         </div>
@@ -18,7 +18,6 @@
     </div>
   </section>
 
-  <!-- 精华区：置顶代表作 -->
   <section class="featured"
            th:with="pinned=${postFinder.list({page:1,size:5,sort:{'spec.pinned,desc','spec.publishTime,desc'}})}"
            th:if="${theme.config.layout?.show_featured != false and not #lists.isEmpty(pinned.items) and pinned.items[0].spec.pinned}">
@@ -30,23 +29,34 @@
     </a>
   </section>
 
-  <div class="home-body" th:classappend="${theme.config.layout?.show_book_wall == false} ? 'no-book-wall' : ''">
-    <!-- 书单墙：阅读分类下的每本书（子分类） -->
-    <aside class="book-wall" th:if="${theme.config.layout?.show_book_wall != false}" th:with="bookSlug=${theme.config.basic?.book_category_slug}">
-      <div class="sec-label" th:text="${theme.config.labels?.book_wall ?: '书单墙'}">书单墙</div>
-      <th:block th:each="topCat : ${categoryFinder.listAsTree()}">
-        <th:block th:if="${topCat.spec.slug == bookSlug}">
-          <a class="book-item" th:each="book : ${topCat.children}" th:href="@{${book.status.permalink}}"
-             th:with="bookVo=${categoryFinder.getByName(book.metadata.name)}">
-            <span class="bt" th:text="${book.spec.displayName}">书名</span>
-            <span class="bc" th:text="${bookVo != null ? bookVo.postCount : (book.postCount ?: 0)}">0</span>
-          </a>
-        </th:block>
-      </th:block>
-      <a class="book-more" th:href="@{${site.routes.categoriesUri}}" th:text="${theme.config.basic?.book_wall_more ?: '全部书卷 →'}">全部书卷 →</a>
-    </aside>
+  <div class="home-body" th:classappend="${(theme.config.layout == null or theme.config.layout.show_book_wall != false) ? '' : 'no-book-wall'}">
+    <div class="home-left" th:if="${theme.config.layout?.show_book_wall != false}"
+         th:with="bookSlug=${theme.config.basic?.book_category_slug ?: 'yue-du'}">
+      <aside class="book-wall">
+        <div class="sec-label" th:text="${theme.config.labels?.book_wall ?: '书单墙'}">书单墙</div>
 
-    <!-- 文章流 -->
+        <th:block th:each="topCat : ${categoryFinder.listAsTree()}">
+          <th:block th:if="${topCat.spec.slug == bookSlug or topCat.spec.displayName == bookSlug}">
+            <a class="book-item" th:each="book : ${topCat.children}" th:href="@{${book.status.permalink}}"
+               th:with="bookVo=${categoryFinder.getByName(book.metadata.name)},
+                        bookTitle=${#strings.replace(#strings.replace(book.spec.displayName,'《',''),'》','')}">
+              <span class="bt" th:text="${bookTitle}">书名</span>
+              <span class="bc" th:text="${bookVo != null ? bookVo.postCount : (book.postCount ?: 0)}">0</span>
+            </a>
+
+            <p class="book-empty" th:if="${#lists.isEmpty(topCat.children)}">
+              还没有书。请在「阅读」下新建子分类（一本一子类）。
+            </p>
+
+            <a class="book-more" th:href="@{${topCat.status.permalink}}"
+               th:text="${theme.config.basic?.book_wall_more ?: '全部书卷 →'}">全部书卷 →</a>
+          </th:block>
+        </th:block>
+      </aside>
+
+      <div th:replace="~{modules/player :: home-panel}"></div>
+    </div>
+
     <section class="post-stream">
       <div class="sec-label" th:text="${theme.config.labels?.latest_posts ?: '最新文章'}">最新文章</div>
       <a class="stream-item" th:each="post : ${posts.items}" th:href="@{${post.status.permalink}}">
@@ -58,7 +68,8 @@
           <div class="st" th:text="${post.spec.title}">标题</div>
           <div class="sx" th:text="${post.status.excerpt}">摘要</div>
           <div class="sm">
-            <span th:if="${not #lists.isEmpty(post.categories)}" th:text="${post.categories[0].spec.displayName} + ' · '"></span><span th:text="|阅读 ${post.stats?.visit ?: 0} · 评论 ${post.status?.commentsCount ?: 0}|"></span>
+            <span th:if="${not #lists.isEmpty(post.categories)}"
+                  th:text="${#strings.replace(#strings.replace(post.categories[0].spec.displayName,'《',''),'》','')} + ' · '"></span><span th:text="|阅读 ${post.stats?.visit ?: 0} · 评论 ${post.status?.commentsCount ?: 0}|"></span>
           </div>
         </div>
       </a>
@@ -68,6 +79,7 @@
 
   <footer th:replace="~{modules/footer :: footer}"></footer>
 </div>
-<div th:replace="~{modules/player :: player}"></div>
+</div>
+<th:block th:replace="~{modules/footer :: scripts}"></th:block>
 </body>
 </html>

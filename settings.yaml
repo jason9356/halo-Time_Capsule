@@ -11,6 +11,16 @@ spec:
           name: seal_char
           label: 顶栏印章字
           help: 站名左侧朱砂印章里的字。留空则自动取站点标题的第一个字
+        - $formkit: radio
+          name: seal_script
+          label: 印章字体（验证用，优先读本机字体）
+          value: li
+          options:
+            - label: 隶书（Windows 常见「隶书/LiSu」，较稳）
+              value: li
+            - label: 小篆（若本机有篆体则用之；否则回退隶书）
+              value: zhuan
+          help: 不依赖外网字体。小篆需系统已安装相关字体才会像篆书。
         - $formkit: text
           name: slogan
           label: 站点题记 / 格言
@@ -28,16 +38,29 @@ spec:
           name: book_category_slug
           label: 书单墙：阅读分类别名（slug）
           value: yue-du
-          help: 书单墙只列出该一级分类下的子分类（每本书一个子分类）。把文章归进某本书：编辑文章时勾选对应子分类，不要只勾父级。例：分类「阅读」(slug=yue-du) → 子分类「稀罕」→ 文章勾选「稀罕」
+          help: 必填。须与后台「文章→分类」里作为书单根的那一级分类的别名完全一致（打开分类编辑可见）。书单墙只显示它下面的子分类；「全部书卷」也跳到这个分类页，不会跳到全站分类。
         - $formkit: text
           name: book_wall_more
           label: 书单墙底部链接文案
           value: 全部书卷 →
+          help: 点击后进入阅读分类页（书单集合），不是全部分类页
         - $formkit: text
           name: book_count_suffix
           label: 书单页篇数后缀
           value: 篇笔记
           help: 例如显示为「3 篇笔记」
+        - $formkit: radio
+          name: book_chapter_style
+          label: 打开某一本书时，篇目怎么显示？
+          value: qi
+          options:
+            - label: 「其一 · 开篇」「其二 · …」（文雅序标 + 你写的短标题）
+              value: qi
+            - label: 「一 · 开篇」「二 · …」（数字序标 + 短标题）
+              value: yi
+            - label: 「开篇」（完全用文章标题，不自动加序标）
+              value: title
+          help: 三种只影响「书」的二级分类页。排序一律按发表时间从早到晚。推荐第一种：标题不必再写书名。
         - $formkit: text
           name: record_number
           label: 备案号
@@ -109,11 +132,11 @@ spec:
         - $formkit: text
           name: base_url
           label: Navidrome 地址
-          help: 公网可达的 HTTPS 地址，不含末尾斜杠（如 https://music.example.com）
+          help: 推荐填同域反代 https://blog.xybkwd.top/tc-music（无 CORS）。也可填 https://music.xybkwd.top。不要填 http://IP:4533
         - $formkit: text
           name: username
           label: 用户名
-          help: 强烈建议使用博客专用只读账号
+          help: 强烈建议使用博客专用只读账号；重载主题配置后若播不了，请把用户名密码重新保存一次
         - $formkit: text
           name: password
           label: 密码
@@ -121,7 +144,17 @@ spec:
         - $formkit: text
           name: playlist_id
           label: 歌单 ID
-          help: 歌单页 URL 中的 ID
+          help: Navidrome 打开歌单后，浏览器地址栏里的 id= 后面那一串
+        - $formkit: text
+          name: section_title
+          label: 听乐区标题
+          value: 此刻在听
+          help: 页脚上方「听乐」区块的标题，用于展示音乐品味
+        - $formkit: textarea
+          name: section_intro
+          label: 听乐区说明
+          value: 写字时听的歌，也算一种旁白。
+          help: 标题下的一句话；留空则不显示
         - $formkit: checkbox
           name: autoplay
           label: 自动播放

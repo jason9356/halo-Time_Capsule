@@ -1,29 +1,114 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<th:block th:fragment="player" th:if="${not #strings.isEmpty(theme.config.navidrome?.base_url) and not #strings.isEmpty(theme.config.navidrome?.playlist_id)}">
-  <div class="player" id="tc-player" title="博客背景音乐">
-    <button class="p-play" id="tc-play" type="button" aria-label="播放/暂停">
-      <svg id="tc-icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      <svg id="tc-icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
-    </button>
-    <div class="p-title" id="tc-track">博客背景音乐</div>
-    <div class="p-extra">
-      <button id="tc-prev" type="button" aria-label="上一首"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-      <button id="tc-next" type="button" aria-label="下一首"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
-      <input class="p-vol" id="tc-vol" type="range" min="0" max="100" value="80" aria-label="音量" />
+
+<!-- 首页「此刻在听」大卡：只做展示与点选，真正的 audio 在全站 dock 里 -->
+<th:block th:fragment="home-panel"
+          th:if="${not #strings.isEmpty(theme.config.navidrome?.base_url) and not #strings.isEmpty(theme.config.navidrome?.playlist_id)}">
+  <section class="listening" data-tc-home-panel aria-label="此刻在听">
+    <div class="listening-inner">
+      <div class="sec-label" th:text="${theme.config.navidrome?.section_title ?: '此刻在听'}">此刻在听</div>
+      <p class="listening-intro" th:if="${not #strings.isEmpty(theme.config.navidrome?.section_intro)}" th:text="${theme.config.navidrome.section_intro}"></p>
+
+      <div class="listening-card">
+        <div class="listening-cover-wrap">
+          <img class="listening-cover" data-tc="cover" alt="" width="280" height="280" />
+          <div class="listening-cover-fallback" data-tc="cover-fallback" aria-hidden="true">♪</div>
+          <button class="listening-play" type="button" data-tc-action="toggle" aria-label="播放/暂停">
+            <svg data-tc="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg data-tc="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+          </button>
+        </div>
+
+        <div class="listening-body">
+          <div class="listening-track" data-tc="track">曲目加载中…</div>
+          <div class="listening-artist" data-tc="artist">—</div>
+          <div class="listening-album" data-tc="album">—</div>
+
+          <div class="listening-tools">
+            <button type="button" data-tc-action="prev" aria-label="上一首" title="上一首">
+              <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button type="button" data-tc-action="next" aria-label="下一首" title="下一首">
+              <svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+            </button>
+            <label class="listening-vol" title="音量">
+              <span>音量</span>
+              <input data-tc="vol" type="range" min="0" max="100" value="80" aria-label="音量" />
+            </label>
+          </div>
+
+          <div class="listening-time">
+            <span data-tc="cur">0:00</span>
+            <div class="listening-progress" aria-hidden="true">
+              <div class="listening-progress-bar" data-tc="progress"></div>
+            </div>
+            <span data-tc="dur">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <ol class="listening-list" data-tc="tracklist"></ol>
+      <p class="listening-error" data-tc="error" hidden></p>
+      <p class="listening-hint">换页听歌不会中断 · 右下角可随时控制</p>
+    </div>
+  </section>
+</th:block>
+
+<!-- 全站悬浮条：audio 住在这里，软跳转时不销毁 -->
+<th:block th:fragment="dock"
+          th:if="${not #strings.isEmpty(theme.config.navidrome?.base_url) and not #strings.isEmpty(theme.config.navidrome?.playlist_id)}">
+  <div class="tc-dock" id="tc-dock" aria-label="背景音乐">
+    <div class="tc-dock-bar">
+      <div class="tc-dock-cover-wrap">
+        <img class="tc-dock-cover" data-tc="cover" alt="" width="48" height="48" />
+        <span class="tc-dock-cover-fallback" data-tc="cover-fallback" aria-hidden="true">♪</span>
+      </div>
+      <div class="tc-dock-meta">
+        <div class="tc-dock-track" data-tc="track">曲目加载中…</div>
+        <div class="tc-dock-artist" data-tc="artist">—</div>
+      </div>
+      <div class="tc-dock-controls">
+        <button type="button" data-tc-action="prev" aria-label="上一首" title="上一首">
+          <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button type="button" class="tc-dock-play" data-tc-action="toggle" aria-label="播放/暂停">
+          <svg data-tc="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg data-tc="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <button type="button" data-tc-action="next" aria-label="下一首" title="下一首">
+          <svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+        </button>
+      </div>
+      <label class="tc-dock-vol" title="音量">
+        <input data-tc="vol" type="range" min="0" max="100" value="80" aria-label="音量" />
+      </label>
+      <button type="button" class="tc-dock-toggle-list" data-tc-action="toggle-list" aria-label="歌单" title="歌单">☰</button>
+    </div>
+    <div class="tc-dock-sheet" id="tc-dock-sheet" hidden>
+      <div class="tc-dock-sheet-head">
+        <span data-tc="album">—</span>
+        <span class="tc-dock-time"><span data-tc="cur">0:00</span> / <span data-tc="dur">0:00</span></span>
+      </div>
+      <div class="listening-progress tc-dock-progress" aria-hidden="true">
+        <div class="listening-progress-bar" data-tc="progress"></div>
+      </div>
+      <ol class="listening-list tc-dock-list" data-tc="tracklist"></ol>
+      <p class="listening-error" data-tc="error" hidden></p>
     </div>
   </div>
+
   <script th:inline="javascript">
     window.__TC_NAVIDROME__ = {
-      baseUrl: [[${theme.config.navidrome?.base_url}]],
-      username: [[${theme.config.navidrome?.username}]],
-      password: [[${theme.config.navidrome?.password}]],
-      playlistId: [[${theme.config.navidrome?.playlist_id}]],
-      autoplay: [[${theme.config.navidrome?.autoplay}]]
+      baseUrl: /*[[${theme.config.navidrome.base_url}]]*/ '',
+      username: /*[[${theme.config.navidrome.username}]]*/ '',
+      password: /*[[${theme.config.navidrome.password}]]*/ '',
+      playlistId: /*[[${theme.config.navidrome.playlist_id}]]*/ '',
+      autoplay: /*[[${theme.config.navidrome.autoplay}]]*/ false
     };
   </script>
   <script th:src="@{/assets/js/player.js?v={v}(v=${theme.spec.version})}"></script>
 </th:block>
+
 </body>
 </html>

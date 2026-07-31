@@ -97,23 +97,35 @@
 
 ```
 博客 HTTPS (blog.xybkwd.top)
-  → fetch 歌单 / stream：https://music.xybkwd.top
-      → 东京 Caddy 纯反代 → 北京 Navidrome :4533
+  → 推荐同域：https://blog.xybkwd.top/tc-music/...
+  → 或直连：  https://music.xybkwd.top/...
+      → 东京 Caddy（剥掉 X-Forwarded-*）→ 北京 Navidrome :4533
 ```
 
 要点：
 
-1. **混合内容**：主题设置里必须填 `https://music.xybkwd.top`，不要再填裸 HTTP IP。  
-2. **CORS 不要双写**：Caddy **不要**再加 `Access-Control-Allow-Origin`；与 Navidrome 自带 `*` 叠成重复头时，浏览器会拒。透传即可。  
-3. 若收紧 CORS：只在 **Navidrome** 设 `ND_CORSALLOWORIGIN=https://blog.xybkwd.top`，不要在 Caddy 加同名头。  
+1. **混合内容**：不要填裸 HTTP IP。优先填 `https://blog.xybkwd.top/tc-music`。  
+2. **DNSPod 拦截坑（2026-07-31）**：Caddy 默认带上 `X-Forwarded-*` 时，北京侧会 302 到 `dnspod.qcloud.com/static/webblock.html`，浏览器表现为 `Failed to fetch`。反代须：
+
+```caddyfile
+reverse_proxy 81.70.93.78:4533 {
+  header_up -X-Forwarded-For
+  header_up -X-Forwarded-Proto
+  header_up -X-Forwarded-Host
+  header_up -Forwarded
+  header_up Host {http.reverse_proxy.upstream.hostport}
+}
+```
+
+3. **CORS 不要双写**：Caddy 不要再加 `Access-Control-Allow-Origin`。  
 4. 凭证走 Subsonic URL 参数（`enc:hex`），务必用**只读账号**。  
-5. 排查：站点 F12 → Console；亦可：
+5. 排查：
 
 ```bash
 curl -s -D - -o /dev/null \
-  "https://music.xybkwd.top/rest/ping?u=USER&p=PASS&v=1.16.1&c=test" \
-  -H "Origin: https://blog.xybkwd.top" | grep -i Access-Control
-# 预期仅一条：Access-Control-Allow-Origin: *
+  "https://music.xybkwd.top/rest/ping.view?u=USER&p=PASS&v=1.16.1&c=test&f=json" \
+  -H "Origin: https://blog.xybkwd.top" | grep -iE 'HTTP/|Access-Control|Location'
+# 预期 HTTP 200，且仅一条 Access-Control-Allow-Origin: *，不能出现 dnspod webblock
 ```
 
 播放器逻辑：`templates/assets/js/player.js`；配置注入：`templates/modules/player.html`。

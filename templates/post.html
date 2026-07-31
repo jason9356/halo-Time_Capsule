@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
 <head th:replace="~{modules/head :: head(${post.spec.title})}"></head>
 <body>
+<div id="tc-page">
 <div class="container-narrow">
   <header th:replace="~{modules/header :: header}"></header>
 
@@ -68,6 +69,7 @@
 
   <footer th:replace="~{modules/footer :: footer}"></footer>
 </div>
-<div th:replace="~{modules/player :: player}"></div>
+</div>
+<th:block th:replace="~{modules/footer :: scripts}"></th:block>
 </body>
 </html>

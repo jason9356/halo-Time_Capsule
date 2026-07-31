@@ -18,6 +18,10 @@
     <a th:if="${theme.config.layout?.show_footer_tags != false}" th:href="@{${site.routes.tagsUri}}">标签</a>
   </div>
 </footer>
-<script th:src="@{/assets/js/theme.js?v={v}(v=${theme.spec.version})}"></script>
+
+<th:block th:fragment="scripts">
+  <th:block th:replace="~{modules/player :: dock}"></th:block>
+  <script th:src="@{/assets/js/theme.js?v={v}(v=${theme.spec.version})}"></script>
+</th:block>
 </body>
 </html>

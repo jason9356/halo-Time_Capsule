@@ -86,14 +86,10 @@ time-capsule/
 
 播放器通过 Subsonic REST API 读取指定歌单并流式播放。
 
-1. **CORS**：Navidrome 需允许博客域跨域，否则前端拉取歌单会被浏览器拦截。给 Navidrome 设置环境变量：
-   ```
-   ND_CORSALLOWORIGIN=https://blog.xybkwd.top
-   ```
-   （或临时用 `*`，但建议限定域名）。媒体流走 `<audio>` 标签，不受 CORS 限制；只有拉取歌单列表需要。
-2. **账号**：请务必使用**只读 / 受限**账号。密码在前端以 `enc:hex` 编码传输，理论上可被查看源码者解码——只读账号把这个风险降到可接受。
-3. **HTTPS**：建议把 Navidrome 置于反向代理（如 Caddy）之后走 HTTPS，避免明文凭证在公网传输，也避免 HTTPS 页面加载 HTTP 资源被浏览器拦（混合内容）。若博客是 HTTPS 而 Navidrome 是 HTTP，需在设置里把地址改为 HTTPS 反代地址。
-4. 在主题设置填入地址 / 用户名 / 密码 / 歌单 ID，播放器即出现在右下角；任一为空则自动隐藏。
+1. **地址**：优先填同域反代 `https://blog.xybkwd.top/tc-music`（无跨域）；也可填 `https://music.xybkwd.top`。不要填 `http://IP:4533`。
+2. **CORS**：直连音乐子域时依赖 Navidrome 透传的 `Access-Control-Allow-Origin`；Caddy **不要**再加同名头（双写会被浏览器拒）。运维细节见 `docs/CONTEXT.md`。
+3. **账号**：请务必使用**只读 / 受限**账号。密码在前端以 `enc:hex` 编码传输。
+4. 在主题设置填入地址 / 用户名 / 密码 / 歌单 ID；首页显示「此刻在听」。重载主题配置后若播不了，请重新保存用户名密码。
 
 ## 六、明暗配色
 
