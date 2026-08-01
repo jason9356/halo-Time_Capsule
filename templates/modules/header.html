@@ -1,9 +1,20 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<header class="site-header" th:fragment="header">
+<header class="site-header" th:fragment="header"
+        th:with="sealCustom=${theme.config.brand?.brand_seal},
+                 sealSize=${theme.config.brand?.brand_seal_size != null and theme.config.brand.brand_seal_size >= 40 and theme.config.brand.brand_seal_size <= 96 ? theme.config.brand.brand_seal_size : 58}">
   <a class="brand" th:href="@{/}">
-    <img class="seal" th:src="@{/assets/img/seal.png}" width="58" height="58" alt="时间容器" />
+    <img class="seal" th:if="${not #strings.isEmpty(sealCustom)}"
+         th:src="${sealCustom}"
+         th:style="|--seal-size:${sealSize}px|"
+         th:alt="${site.title}"
+         width="58" height="58" />
+    <img class="seal" th:unless="${not #strings.isEmpty(sealCustom)}"
+         th:src="@{/assets/img/seal.png}"
+         th:style="|--seal-size:${sealSize}px|"
+         th:alt="${site.title}"
+         width="58" height="58" />
     <div class="brand-text">
       <h1 th:classappend="${theme.config.typography?.brand_lishu == true} ? ' is-lishu' : ''"
           th:text="${site.title}">站点标题</h1>

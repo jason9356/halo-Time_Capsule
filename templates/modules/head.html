@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:fragment="head(title)">
+<head th:fragment="head(title)"
+      th:with="useSealFavicon=${theme.config.brand?.seal_as_favicon == true},
+               sealCustom=${theme.config.brand?.brand_seal}">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title th:text="${title != null ? title + ' · ' + site.title : site.title}">时间容器</title>
-  <link rel="icon" th:href="${site.favicon}" />
+  <!-- 浏览器标签图标：可选同步顶栏方印，否则用系统 Favicon -->
+  <!-- 标签页：自定义印优先；否则用简洁「時」小印（比四字大印更清晰） -->
+  <link rel="icon" th:if="${useSealFavicon and not #strings.isEmpty(sealCustom)}" th:href="${sealCustom}" />
+  <link rel="icon" th:if="${useSealFavicon and #strings.isEmpty(sealCustom)}" th:href="@{/assets/img/seal-mark.png}" />
+  <link rel="icon" th:unless="${useSealFavicon}" th:href="${site.favicon}" />
   <script>
     /* 防止暗色模式闪烁：在样式加载前恢复访客的手动选择 */
     (function(){try{var t=localStorage.getItem('tc-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();

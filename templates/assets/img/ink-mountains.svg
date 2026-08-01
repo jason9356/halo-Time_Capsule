@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="xMidYMax slice">
+  <defs>
+    <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="currentColor" stop-opacity="0"/>
+      <stop offset="100%" stop-color="currentColor" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+  <!-- 远山（最淡） -->
+  <path fill="currentColor" opacity="0.04" d="M0,224 C80,198 160,172 260,186 C360,200 420,156 520,148 C620,140 700,178 800,170 C900,162 980,132 1080,140 C1180,148 1280,180 1360,172 C1400,168 1420,174 1440,178 L1440,320 L0,320 Z"/>
+  <!-- 中景山 -->
+  <path fill="currentColor" opacity="0.06" d="M0,258 C100,238 180,218 280,232 C380,246 440,204 560,196 C680,188 740,224 860,214 C980,204 1060,176 1160,188 C1260,200 1340,226 1440,218 L1440,320 L0,320 Z"/>
+  <!-- 近山（最浓） -->
+  <path fill="currentColor" opacity="0.09" d="M0,282 C120,268 200,252 320,262 C440,272 520,240 640,236 C760,232 840,258 960,250 C1080,242 1180,222 1280,234 C1360,242 1400,256 1440,252 L1440,320 L0,320 Z"/>
+  <!-- 水面倒影（极淡横纹） -->
+  <path fill="currentColor" opacity="0.025" d="M0,296 C200,292 400,298 600,294 C800,290 1000,296 1200,293 C1350,291 1400,295 1440,294 L1440,320 L0,320 Z"/>
+  <!-- 云雾留白（用 paper 色覆盖制造断带） -->
+  <rect x="180" y="200" width="260" height="18" rx="9" fill="var(--paper,#F7F3EA)" opacity="0.5"/>
+  <rect x="820" y="185" width="200" height="14" rx="7" fill="var(--paper,#F7F3EA)" opacity="0.4"/>
+</svg>

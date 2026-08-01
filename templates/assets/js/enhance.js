@@ -20,9 +20,18 @@
   var DZ = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   var SX = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
 
-  function ganzhi(y) {
-    return TG[(y - 4) % 10] + DZ[(y - 4) % 12] + '年（' + SX[(y - 4) % 12] + '年）';
+  function ganzhi(y, full) {
+    var base = TG[(y - 4) % 10] + DZ[(y - 4) % 12];
+    if (full === false) return base;
+    return base + '年（' + SX[(y - 4) % 12] + '年）';
   }
+
+  var MOUNTAIN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="xMidYMax slice">'
+    + '<path fill="currentColor" opacity="0.04" d="M0,224 C80,198 160,172 260,186 C360,200 420,156 520,148 C620,140 700,178 800,170 C900,162 980,132 1080,140 C1180,148 1280,180 1360,172 C1400,168 1420,174 1440,178 L1440,320 L0,320 Z"/>'
+    + '<path fill="currentColor" opacity="0.06" d="M0,258 C100,238 180,218 280,232 C380,246 440,204 560,196 C680,188 740,224 860,214 C980,204 1060,176 1160,188 C1260,200 1340,226 1440,218 L1440,320 L0,320 Z"/>'
+    + '<path fill="currentColor" opacity="0.09" d="M0,282 C120,268 200,252 320,262 C440,272 520,240 640,236 C760,232 840,258 960,250 C1080,242 1180,222 1280,234 C1360,242 1400,256 1440,252 L1440,320 L0,320 Z"/>'
+    + '<path fill="currentColor" opacity="0.025" d="M0,296 C200,292 400,298 600,294 C800,290 1000,296 1200,293 C1350,291 1400,295 1440,294 L1440,320 L0,320 Z"/>'
+    + '</svg>';
 
   function ensureChrome() {
     var bar = document.getElementById('tc-progress');
@@ -41,6 +50,14 @@
       btn.addEventListener('click', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
+    }
+    var mtn = document.getElementById('tc-mountains');
+    if (!mtn) {
+      mtn = document.createElement('div');
+      mtn.id = 'tc-mountains';
+      mtn.setAttribute('aria-hidden', 'true');
+      mtn.innerHTML = MOUNTAIN_SVG;
+      document.body.appendChild(mtn);
     }
   }
 
@@ -98,7 +115,7 @@
       var y = new Date().getFullYear();
       var span = document.createElement('span');
       span.className = 'tc-lunar';
-      span.textContent = ganzhi(y);
+      span.textContent = ganzhi(y, false); /* 列表窄栏只显示「丙午」，避免断行难看 */
       el.appendChild(span);
     });
 
@@ -124,8 +141,9 @@
     colophon.className = 'tc-colophon';
     var img = document.createElement('img');
     img.className = 'tc-colophon-seal';
-    img.src = '/themes/time-capsule/assets/img/seal.png';
-    img.alt = '时间容器';
+    /* 落款用简洁「時」小印；顶栏大印留给门楣 */
+    img.src = '/themes/time-capsule/assets/img/seal-mark.png';
+    img.alt = '時';
     var txt = document.createElement('div');
     txt.className = 'tc-colophon-text';
     txt.innerHTML = '<span class="tc-ganzhi">' + ganzhi(new Date().getFullYear()) + '</span> 识于时间容器';

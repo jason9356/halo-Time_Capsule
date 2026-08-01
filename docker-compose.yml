@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  halo:
+    image: halohub/halo:2.22
+    container_name: halo-dev
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - halo-data:/root/.halo2
+    environment:
+      - HALO_SECURITY_INITIALIZER_SUPERADMINUSERNAME=admin
+      - HALO_SECURITY_INITIALIZER_SUPERADMINPASSWORD=admin123
+    command:
+      - --halo.external-url=http://localhost:8090
+
+volumes:
+  halo-data:

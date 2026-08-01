@@ -4,6 +4,32 @@ metadata:
   name: time-capsule-setting
 spec:
   forms:
+    - group: brand
+      label: 品牌形象
+      formSchema:
+        - $formkit: attachment
+          name: brand_seal
+          label: 顶栏方印 / 博客图标
+          accepts:
+            - "image/png"
+            - "image/jpeg"
+            - "image/webp"
+            - "image/svg+xml"
+            - "image/gif"
+          help: 仅用于顶栏门楣大图。不上传则用篆书四字印「时间容器」。建议正方形 PNG。文末落款与默认标签页仍用简洁「時」小印。
+        - $formkit: number
+          name: brand_seal_size
+          label: 方印边长（像素）
+          value: 58
+          min: 40
+          max: 96
+          help: 默认 58。大屏可略加大到 64–72。
+        - $formkit: checkbox
+          name: seal_as_favicon
+          label: 用主题印章作浏览器标签图标
+          value: false
+          help: 开启后：若已上传自定义印则用自定义；否则用简洁「時」小印（比四字大印更清晰）。关闭则仍用系统 Favicon。
+
     - group: basic
       label: 基础文案
       formSchema:
