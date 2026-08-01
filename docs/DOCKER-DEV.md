@@ -13,7 +13,19 @@ docker compose up -d
 # 后台 http://localhost:8090/console  (admin / admin123)
 ```
 
-首次启动后需通过 API 完成初始化（见下方「初始化」一节），之后主题通过 API 上传安装。
+`docker-compose.yml` 已把**本仓库根目录**挂到容器内 `themes/time-capsule`，并关闭 Thymeleaf 缓存：
+
+- 改 `templates/**/*.html` → 浏览器 **Ctrl+F5** 即可
+- 改 `templates/assets/css|js` → 同上（若仍旧，清缓存或临时改 `theme.yaml` version 骗过 `?v=`）
+- 改 `settings.yaml` → 后台「外观 → 主题 → **重载主题配置**」
+- **日常小改不要 bump version**；功能凑一轮再用 `pack.ps1` 打正式包上传生产站
+
+首次启动后需完成初始化（见下），并在后台启用「时间容器」主题（挂载后目录已在，可能仍要点一次启用/重载）。
+
+```powershell
+# 改过 compose 挂载后需要重建容器（数据卷保留）
+docker compose up -d --force-recreate
+```
 
 ---
 
@@ -174,23 +186,44 @@ curl -s -b /tmp/ck.txt -c /tmp/ck.txt -X POST http://127.0.0.1:8090/login \
 
 ---
 
-## 日常更新主题
+## 日常开发（推荐：挂载，不打包）
+
+本地改文件 → 刷新 `http://localhost:8090`。Agent 也可直接改仓库，效果同样进 Docker。
+
+仅当挂载异常、或要验证「上传 zip」路径时，才走打包安装：
 
 ```powershell
-# 1. 打包
 powershell -ExecutionPolicy Bypass -File pack.ps1
-
-# 2. 复制进容器
-docker cp time-capsule-1.9.1.zip halo-dev:/tmp/theme.zip
-
-# 3. 上传安装（需先登录拿 cookie，或直接在后台 UI 上传）
-docker exec halo-dev sh -c "curl -s -b /tmp/ck.txt -X POST http://127.0.0.1:8090/apis/api.console.halo.run/v1alpha1/themes/install -F 'file=@/tmp/theme.zip'"
+# 浏览器后台：外观 → 主题 → 上传
+# 或 docker cp + install API（需先登录拿 cookie）
 ```
 
-注意：容器重启后 `/tmp/ck.txt` 丢失，需重新走 RSA 登录流程。也可以直接在浏览器后台「外观 → 主题 → 上传」操作。
+容器重启后 `/tmp/ck.txt` 会丢，需重新登录。
+
+---
+
+## 版本策略（重要：关系到浏览器缓存）
+
+模板引用资源带 `?v=${theme.spec.version}`，浏览器按完整 URL 缓存。**version 不变 → URL 不变 → 浏览器用旧缓存**，改了 CSS 也看不到（硬刷新也可能被强缓存挡住）。
+
+| 场景 | 要不要改 version |
+|------|------------------|
+| 本地 Docker 调样式/文案/小逻辑 | **要**（否则浏览器缓存不失效，看不到改动） |
+| 准备上传生产 / 给别人安装的 zip | **要**（如 1.9.1 → 1.9.2） |
+| 仅 commit 存档 | 可不改 |
+
+**关键坑**：`theme.spec.version` 存在 Halo 数据库里，改 `theme.yaml` 的 version **不会自动生效**（重启容器也不重读）。改完 version 后必须登录 PUT 更新 Theme 资源：
+
+```sh
+# 1. GET 拿当前 metadata.version（乐观锁用）
+curl -s -b /tmp/ck.txt http://127.0.0.1:8090/apis/theme.halo.run/v1alpha1/themes/time-capsule
+# 2. PUT 回去：spec.version 填新值，metadata.version 填第 1 步拿到的数字
+```
+
+PUT 成功后 `?v=` 变成新 URL，浏览器普通刷新即拉新 CSS。
 
 ---
 
 ## 打包主题不受 Docker 影响
 
-`pack.ps1` 只打包 `theme.yaml`、`settings.yaml`、`annotation-settings.yaml` 和 `templates/` 目录。`docker-compose.yml` 和本文档不在打包范围内，不影响主题 zip。
+`pack.ps1` 只打包 `theme.yaml`、`settings.yaml`、`annotation-settings.yaml` 和 `templates/`。`docker-compose.yml` 与本文档不进 zip。

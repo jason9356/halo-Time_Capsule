@@ -49,7 +49,8 @@
                th:with="bookVo=${categoryFinder.getByName(book.metadata.name)},
                         bookTitle=${#strings.replace(#strings.replace(book.spec.displayName,'《',''),'》','')}">
               <span class="bt" th:text="${bookTitle}">书名</span>
-              <span class="bc" th:text="${bookVo != null ? bookVo.postCount : (book.postCount ?: 0)}">0</span>
+              <span class="bc" th:with="cnt=${(bookVo != null and bookVo.postCount != null) ? bookVo.postCount : (book.postCount ?: 0)}"
+                    th:text="${cnt > 0 ? cnt : '·'}" th:classappend="${cnt > 0 ? '' : ' bc-empty'}">0</span>
             </a>
 
             <p class="book-empty" th:if="${#lists.isEmpty(topCat.children)}">

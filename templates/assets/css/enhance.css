@@ -122,8 +122,8 @@ body.tc-navigating .rel-item{
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
-  padding:18px 8px 14px;
+  justify-content:flex-start;
+  padding:18px 8px 12px;
   min-height:120px;
   border-left-width:4px;
   position:relative;
@@ -140,10 +140,18 @@ body.tc-navigating .rel-item{
 }
 .book-wall .book-item .bc{
   writing-mode:horizontal-tb;
-  margin-top:10px;
+  margin-top:auto;
   font-size:11px;
   border-radius:8px;
   padding:1px 7px;
+  min-width:22px;
+  text-align:center;
+  line-height:1.5;
+}
+.book-wall .book-item .bc-empty{
+  color:var(--sub);
+  opacity:0.55;
+  border-style:dashed;
 }
 .book-wall .book-item:nth-child(odd){ min-height:130px; }
 .book-wall .book-item:nth-child(even){ min-height:110px; }
@@ -233,11 +241,27 @@ body.tc-navigating .rel-item{
   letter-spacing:0.06em;
 }
 
-/* ---------- 十二、回到顶部 ---------- */
-#tc-backtop{
+/* ---------- 十二、 floating 双印「回家」（回顶部 + 回首页） ---------- */
+#tc-float-nav{
   position:fixed;
   right:20px;
   bottom:90px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  z-index:90;
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity .3s, transform .3s;
+  pointer-events:none;
+}
+#tc-float-nav.tc-show{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+#tc-float-nav button,
+#tc-float-nav a{
   width:40px;
   height:40px;
   background:var(--accent);
@@ -251,18 +275,14 @@ body.tc-navigating .rel-item{
   display:flex;
   align-items:center;
   justify-content:center;
-  opacity:0;
-  transform:translateY(10px);
-  transition:opacity .3s, transform .3s;
-  z-index:90;
   box-shadow:0 3px 12px rgba(158,59,46,0.3);
+  transition:background .2s, transform .2s;
+  text-decoration:none;
 }
-#tc-backtop.tc-show{
-  opacity:1;
-  transform:translateY(0);
-}
-#tc-backtop:hover{
+#tc-float-nav button:hover,
+#tc-float-nav a:hover{
   background:var(--accent-deep);
+  transform:translateY(-2px);
 }
 
 /* ---------- 十三、在读呼吸点 ---------- */
@@ -304,7 +324,7 @@ body.tc-navigating .rel-item{
     font-size:14px;
     letter-spacing:0.12em;
   }
-  #tc-backtop{
+  #tc-float-nav{
     bottom:100px;
     right:14px;
   }
@@ -343,11 +363,34 @@ html[data-theme="dark"] #tc-mountains{
   }
 }
 
-/* ---------- 十七、打印样式 ---------- */
+/* ---------- 十七、顶栏朱丝栏（古籍界栏） ---------- */
+/* 只落在顶部留白区，不侵入标题/工具所在的内容带 */
+.site-header{position:relative;}
+.site-header::before{
+  content:"";
+  position:absolute;
+  top:0;
+  height:32px;
+  left:50%;
+  transform:translateX(-50%);
+  width:200px;
+  background:repeating-linear-gradient(90deg,
+    transparent 0 33px,
+    color-mix(in srgb, var(--accent) 15%, transparent) 33px 34px);
+  -webkit-mask-image:linear-gradient(to bottom, #000 0, #000 45%, transparent 100%);
+  mask-image:linear-gradient(to bottom, #000 0, #000 45%, transparent 100%);
+  pointer-events:none;
+}
+@media (max-width:880px){
+  .site-header::before{display:none;}
+}
+
+/* ---------- 十八、打印样式 ---------- */
 @media print{
   body::after{display:none;}
-  #tc-progress, #tc-backtop, #tc-mountains, .tc-dock, .header-tools{display:none !important;}
+  #tc-progress, #tc-float-nav, #tc-mountains, .tc-dock, .header-tools{display:none !important;}
   .site-header{border-bottom:2px solid #333;}
+  .site-header::before{display:none;}
   .post-content{font-size:12pt;line-height:2;}
   .post-content a{color:#333;border-bottom:none;}
   .post-sidebar{display:none;}

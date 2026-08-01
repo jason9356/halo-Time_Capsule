@@ -18,12 +18,9 @@
 
   var TG = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
   var DZ = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-  var SX = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
 
-  function ganzhi(y, full) {
-    var base = TG[(y - 4) % 10] + DZ[(y - 4) % 12];
-    if (full === false) return base;
-    return base + '年（' + SX[(y - 4) % 12] + '年）';
+  function ganzhi(y) {
+    return TG[(y - 4) % 10] + DZ[(y - 4) % 12];
   }
 
   var MOUNTAIN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="xMidYMax slice">'
@@ -40,16 +37,28 @@
       bar.id = 'tc-progress';
       document.body.appendChild(bar);
     }
-    var btn = document.getElementById('tc-backtop');
-    if (!btn) {
-      btn = document.createElement('button');
+    var nav = document.getElementById('tc-float-nav');
+    if (!nav) {
+      nav = document.createElement('div');
+      nav.id = 'tc-float-nav';
+      var btn = document.createElement('button');
       btn.id = 'tc-backtop';
+      btn.type = 'button';
       btn.textContent = '回';
       btn.title = '回到顶部';
-      document.body.appendChild(btn);
+      btn.setAttribute('aria-label', '回到顶部');
       btn.addEventListener('click', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
+      var home = document.createElement('a');
+      home.id = 'tc-backhome';
+      home.href = '/';
+      home.textContent = '家';
+      home.title = '回到首页';
+      home.setAttribute('aria-label', '回到首页');
+      nav.appendChild(btn);
+      nav.appendChild(home);
+      document.body.appendChild(nav);
     }
     var mtn = document.getElementById('tc-mountains');
     if (!mtn) {
@@ -69,8 +78,8 @@
   }
 
   function updateBacktop() {
-    var btn = document.getElementById('tc-backtop');
-    if (btn) btn.classList.toggle('tc-show', window.scrollY > 500);
+    var nav = document.getElementById('tc-float-nav');
+    if (nav) nav.classList.toggle('tc-show', window.scrollY > 500);
   }
 
   function revealIn(root) {
@@ -115,7 +124,7 @@
       var y = new Date().getFullYear();
       var span = document.createElement('span');
       span.className = 'tc-lunar';
-      span.textContent = ganzhi(y, false); /* 列表窄栏只显示「丙午」，避免断行难看 */
+      span.textContent = ganzhi(y);
       el.appendChild(span);
     });
 

@@ -1,5 +1,9 @@
 version: "3.8"
 
+# 主题开发：本仓库直接挂到 Halo themes/time-capsule
+# 改 templates/ 后浏览器硬刷新即可（已关 Thymeleaf 缓存）
+# 小改不动 theme.yaml 的 version；凑一轮再 pack 出正式包
+
 services:
   halo:
     image: halohub/halo:2.22
@@ -9,11 +13,14 @@ services:
       - "8090:8090"
     volumes:
       - halo-data:/root/.halo2
+      # 用本地仓库覆盖容器内主题（目录名须与 theme.yaml metadata.name 一致）
+      - .:/root/.halo2/themes/time-capsule
     environment:
       - HALO_SECURITY_INITIALIZER_SUPERADMINUSERNAME=admin
       - HALO_SECURITY_INITIALIZER_SUPERADMINPASSWORD=admin123
     command:
       - --halo.external-url=http://localhost:8090
+      - --spring.thymeleaf.cache=false
 
 volumes:
   halo-data:
