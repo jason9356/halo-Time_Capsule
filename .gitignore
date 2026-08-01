@@ -6,4 +6,6 @@ Thumbs.db
 *.zip
 .font-tmp/
 tools/book-fill/.env
+__pycache__/
+*.pyc
 

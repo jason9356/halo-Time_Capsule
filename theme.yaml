@@ -5,17 +5,17 @@ metadata:
 spec:
   displayName: 时间容器
   author:
-    name: 时间容器
+    name: jason9356
     website: https://blog.xybkwd.top
   description: 书卷气、高密度、为长期写作而生的个人图书馆式 Halo 主题。
-  logo: https://blog.xybkwd.top/favicon.ico
-  homepage: https://blog.xybkwd.top
-  repo: https://blog.xybkwd.top
-  issues: https://blog.xybkwd.top
+  logo: https://raw.githubusercontent.com/jason9356/halo-Time_Capsule/main/templates/assets/img/seal.png
+  homepage: https://github.com/jason9356/halo-Time_Capsule
+  repo: https://github.com/jason9356/halo-Time_Capsule.git
+  issues: https://github.com/jason9356/halo-Time_Capsule/issues
   settingName: time-capsule-setting
   configMapName: time-capsule-configMap
   version: 1.9.6
   requires: ">=2.22.0"
   license:
     - name: "GPL-3.0"
-      url: "https://www.gnu.org/licenses/gpl-3.0.html"
+      url: "https://github.com/jason9356/halo-Time_Capsule/blob/main/LICENSE"

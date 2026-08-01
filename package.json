@@ -1,0 +1,10 @@
+{
+  "name": "time-capsule",
+  "version": "1.9.6",
+  "private": true,
+  "description": "书卷气、高密度、为长期写作而生的个人图书馆式 Halo 主题",
+  "license": "GPL-3.0",
+  "scripts": {
+    "build": "npx @halo-dev/theme-package-cli"
+  }
+}
