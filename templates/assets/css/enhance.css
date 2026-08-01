@@ -1,0 +1,332 @@
+/* ============================================================
+   时间容器 · 雅集 — 美化增强层 v1.8.6
+   纸面肌理 / 书脊竖排 / 静中有动 / 朱砂进度线 / 落款
+   叠加在 theme.css 之后，不覆盖原有结构
+   ============================================================ */
+
+/* ---------- 一、纸面肌理 ---------- */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  opacity:0.022;
+  mix-blend-mode:multiply;
+}
+html[data-theme="dark"] body::after{
+  opacity:0.035;
+  mix-blend-mode:screen;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) body::after{
+    opacity:0.035;
+    mix-blend-mode:screen;
+  }
+}
+
+/* ---------- 二、暗色模式 · 灯下夜读 ---------- */
+html[data-theme="dark"] body{
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(201,106,88,0.06), transparent 70%),
+    radial-gradient(circle at 18% 8%, rgba(201,106,88,0.04), transparent 42%),
+    radial-gradient(circle at 84% 92%, rgba(61,74,87,0.04), transparent 46%);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) body{
+    background-image:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(201,106,88,0.06), transparent 70%),
+      radial-gradient(circle at 18% 8%, rgba(201,106,88,0.04), transparent 42%),
+      radial-gradient(circle at 84% 92%, rgba(61,74,87,0.04), transparent 46%);
+  }
+}
+
+/* ---------- 三、朱砂阅读进度线 ---------- */
+#tc-progress{
+  position:fixed;
+  top:0;left:0;
+  height:2px;
+  width:0;
+  background:linear-gradient(90deg, var(--accent), var(--accent-deep));
+  z-index:10000;
+  transition:width 80ms linear;
+  pointer-events:none;
+}
+
+/* ---------- 四、滚动浮现 ---------- */
+.stream-item,
+.cat-card,
+.featured-item,
+.book-item,
+.moment-card,
+.timeline-item,
+.archive-item,
+.rel-item{
+  opacity:0;
+  transform:translateY(14px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.stream-item.tc-visible,
+.cat-card.tc-visible,
+.featured-item.tc-visible,
+.book-item.tc-visible,
+.moment-card.tc-visible,
+.timeline-item.tc-visible,
+.archive-item.tc-visible,
+.rel-item.tc-visible{
+  opacity:1;
+  transform:translateY(0);
+}
+html:not(.tc-js) .stream-item,
+html:not(.tc-js) .cat-card,
+html:not(.tc-js) .featured-item,
+html:not(.tc-js) .book-item,
+html:not(.tc-js) .moment-card,
+html:not(.tc-js) .timeline-item,
+html:not(.tc-js) .archive-item,
+html:not(.tc-js) .rel-item{
+  opacity:1;
+  transform:none;
+}
+/* 软跳转瞬间：避免新内容在 __TC_ENHANCE_REFRESH__ 跑之前整页透明 */
+body.tc-navigating .stream-item,
+body.tc-navigating .cat-card,
+body.tc-navigating .featured-item,
+body.tc-navigating .book-item,
+body.tc-navigating .moment-card,
+body.tc-navigating .timeline-item,
+body.tc-navigating .archive-item,
+body.tc-navigating .rel-item{
+  opacity:1;
+  transform:none;
+  transition:none;
+}
+
+/* ---------- 五、书脊竖排（书单墙） ---------- */
+.book-wall{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(56px, 1fr));
+  gap:8px;
+}
+.book-wall .sec-label{
+  grid-column:1 / -1;
+}
+.book-wall .book-more{
+  grid-column:1 / -1;
+}
+.book-wall .book-empty{
+  grid-column:1 / -1;
+}
+.book-wall .book-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:18px 8px 14px;
+  min-height:120px;
+  border-left-width:4px;
+  position:relative;
+  margin-bottom:0;
+}
+.book-wall .book-item .bt{
+  writing-mode:vertical-rl;
+  letter-spacing:0.18em;
+  font-size:17px;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+}
+.book-wall .book-item .bc{
+  writing-mode:horizontal-tb;
+  margin-top:10px;
+  font-size:11px;
+  border-radius:8px;
+  padding:1px 7px;
+}
+.book-wall .book-item:nth-child(odd){ min-height:130px; }
+.book-wall .book-item:nth-child(even){ min-height:110px; }
+.book-wall .book-item::before{
+  content:"";
+  position:absolute;
+  top:6px;
+  left:50%;
+  transform:translateX(-50%);
+  width:16px;
+  height:2px;
+  background:var(--line);
+  border-radius:1px;
+}
+.book-wall .book-item:hover::before{
+  background:var(--accent);
+}
+
+/* ---------- 六、区块标签 · 朱砂句读 ---------- */
+.sec-label::before{
+  content:"\3002";
+  color:var(--accent);
+  font-size:16px;
+  font-family:var(--serif);
+  line-height:1;
+  margin-right:-4px;
+}
+
+/* ---------- 七、链接下划线展开 ---------- */
+.post-content a,
+.footer-links a,
+.cat-more,
+.book-more,
+.back-link{
+  background-image:linear-gradient(var(--accent), var(--accent));
+  background-size:0% 1px;
+  background-position:0 100%;
+  background-repeat:no-repeat;
+  transition:background-size .3s ease, color .15s;
+}
+.post-content a:hover,
+.footer-links a:hover,
+.cat-more:hover,
+.book-more:hover,
+.back-link:hover{
+  background-size:100% 1px;
+}
+
+/* ---------- 八、印章 hover 微动 ---------- */
+.seal{
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+}
+.brand:hover .seal{
+  transform:rotate(-4deg) scale(1.04);
+}
+
+/* ---------- 九、文末落款 ---------- */
+.tc-colophon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  margin:48px 0 12px;
+  padding-top:28px;
+  border-top:1px solid var(--line);
+}
+.tc-colophon-seal{
+  width:32px;
+  height:32px;
+  border-radius:2px;
+  opacity:0.85;
+}
+.tc-colophon-text{
+  font-family:var(--serif);
+  font-size:14px;
+  color:var(--sub);
+  letter-spacing:0.08em;
+}
+.tc-colophon-text .tc-ganzhi{
+  color:var(--accent);
+}
+
+/* ---------- 十、日期栏干支小字 ---------- */
+.stream-date .tc-lunar{
+  font-size:10px;
+  color:var(--accent);
+  margin-top:3px;
+  letter-spacing:0.06em;
+  font-family:var(--serif);
+  opacity:0.8;
+}
+
+/* ---------- 十一、分页古典化 ---------- */
+.pagination .page-info{
+  font-family:var(--serif);
+  letter-spacing:0.06em;
+}
+
+/* ---------- 十二、回到顶部 ---------- */
+#tc-backtop{
+  position:fixed;
+  right:20px;
+  bottom:90px;
+  width:40px;
+  height:40px;
+  background:var(--accent);
+  color:var(--paper);
+  border:none;
+  border-radius:3px;
+  cursor:pointer;
+  font-family:var(--serif);
+  font-size:18px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity .3s, transform .3s;
+  z-index:90;
+  box-shadow:0 3px 12px rgba(158,59,46,0.3);
+}
+#tc-backtop.tc-show{
+  opacity:1;
+  transform:translateY(0);
+}
+#tc-backtop:hover{
+  background:var(--accent-deep);
+}
+
+/* ---------- 十三、在读呼吸点 ---------- */
+.book-item.reading::after{
+  content:"";
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--accent);
+  animation:tc-breathe 2.5s ease-in-out infinite;
+}
+@keyframes tc-breathe{
+  0%,100%{opacity:0.4;transform:scale(0.8);}
+  50%{opacity:1;transform:scale(1.1);}
+}
+
+/* ---------- 十四、精华区圈点 ---------- */
+.featured-item .ft::before{
+  content:"\3001";
+  color:var(--accent);
+  font-family:var(--serif);
+  margin-right:2px;
+}
+
+/* ---------- 十五、响应式修正 ---------- */
+@media (max-width:880px){
+  .book-wall{
+    grid-template-columns:repeat(auto-fill, minmax(48px, 1fr));
+    gap:6px;
+  }
+  .book-wall .book-item{
+    min-height:90px !important;
+    padding:14px 6px 10px;
+  }
+  .book-wall .book-item .bt{
+    font-size:14px;
+    letter-spacing:0.12em;
+  }
+  #tc-backtop{
+    bottom:100px;
+    right:14px;
+  }
+}
+
+/* ---------- 十六、打印样式 ---------- */
+@media print{
+  body::after{display:none;}
+  #tc-progress, #tc-backtop, .tc-dock, .header-tools{display:none !important;}
+  .site-header{border-bottom:2px solid #333;}
+  .post-content{font-size:12pt;line-height:2;}
+  .post-content a{color:#333;border-bottom:none;}
+  .post-sidebar{display:none;}
+  .post-body{grid-template-columns:1fr;}
+  .stream-item,.cat-card,.featured-item,.book-item{opacity:1 !important;transform:none !important;}
+}

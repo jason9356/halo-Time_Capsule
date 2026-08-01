@@ -46,13 +46,15 @@
     </div>
   </div>
 
-  <!-- 书单页：按发表时间从早到晚；序标其一/一 可选。分页用框架 posts（含 prevUrl/nextUrl），勿用 postFinder.list 结果分页 -->
+  <!-- 书单页：按发表时间从早到晚。size 兜底避免 posts.size=0 时 postFinder 查空；分页仍用框架 posts -->
   <section class="timeline" th:if="${isBook}"
            th:with="chapterStyle=${theme.config.basic?.book_chapter_style ?: 'qi'},
                     cnNums=${#strings.arraySplit('一,二,三,四,五,六,七,八,九,十,十一,十二,十三,十四,十五,十六,十七,十八,十九,二十,二十一,二十二,二十三,二十四,二十五,二十六,二十七,二十八,二十九,三十', ',')},
-                    bookPage=${postFinder.list({page: posts.page, size: posts.size, categoryName: category.metadata.name, sort: {'spec.publishTime,asc'}})}">
-    <a class="timeline-item" th:each="post,iter : ${bookPage.items}" th:href="@{${post.status.permalink}}"
-       th:with="ord=${(bookPage.page - 1) * bookPage.size + iter.count},
+                    bookSize=${(posts.size != null and posts.size > 0) ? posts.size : ((posts.total != null and posts.total > 0) ? posts.total : 100)},
+                    bookPage=${postFinder.list({page: (posts.page != null and posts.page > 0 ? posts.page : 1), size: bookSize, categoryName: category.metadata.name, sort: {'spec.publishTime,asc'}})},
+                    timelinePosts=${(bookPage != null and not #lists.isEmpty(bookPage.items)) ? bookPage.items : posts.items}">
+    <a class="timeline-item" th:each="post,iter : ${timelinePosts}" th:href="@{${post.status.permalink}}"
+       th:with="ord=${((bookPage != null and bookPage.page != null and bookPage.page > 0) ? (bookPage.page - 1) : 0) * ((bookPage != null and bookPage.size != null and bookPage.size > 0) ? bookPage.size : bookSize) + iter.count},
                 cn=${ord <= 30 ? cnNums[ord - 1] : ('' + ord)},
                 label=${chapterStyle == 'yi' ? cn : (chapterStyle == 'qi' ? ('其' + cn) : null)}">
       <span class="dot"></span>
@@ -65,6 +67,7 @@
         <th:block th:if="${label == null}" th:text="${post.spec.title}">标题</th:block>
       </span>
     </a>
+    <p class="book-empty" th:if="${#lists.isEmpty(timelinePosts)}">这本书下还没有笔记。</p>
     <div th:replace="~{modules/pagination :: pagination(${posts})}"></div>
   </section>
 

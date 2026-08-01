@@ -10,6 +10,7 @@
     (function(){try{var t=localStorage.getItem('tc-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();
   </script>
   <link rel="stylesheet" th:href="@{/assets/css/theme.css?v={v}(v=${theme.spec.version})}" />
+  <link rel="stylesheet" th:href="@{/assets/css/enhance.css?v={v}(v=${theme.spec.version})}" />
   <!-- 字体方案必须在 theme.css 之后，否则 :root 变量会被主题默认值盖掉 -->
   <th:block th:replace="~{modules/fonts :: fonts}"></th:block>
 </head>

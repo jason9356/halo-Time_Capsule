@@ -24,6 +24,7 @@
 <th:block th:fragment="scripts">
   <th:block th:replace="~{modules/player :: dock}"></th:block>
   <script th:src="@{/assets/js/theme.js?v={v}(v=${theme.spec.version})}"></script>
+  <script th:src="@{/assets/js/enhance.js?v={v}(v=${theme.spec.version})}"></script>
 </th:block>
 </body>
 </html>

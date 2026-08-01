@@ -393,15 +393,20 @@
       if (vol !== null) qsAll('[data-tc="vol"]').forEach(function (n) { n.value = vol; });
     }
     if (window.__TC_BIND_THEME__) window.__TC_BIND_THEME__();
+    /* 雅集浮现/干支：enhance.js 只在首屏执行，软跳转后必须重跑 */
+    if (window.__TC_ENHANCE_REFRESH__) window.__TC_ENHANCE_REFRESH__();
     window.scrollTo(0, 0);
   }
 
   function navigate(href, push) {
-    if (navigating) return;
+    if (navigating) {
+      location.href = href;
+      return;
+    }
     navigating = true;
     persistNow();
     document.body.classList.add('tc-navigating');
-    fetch(href, { credentials: 'same-origin', headers: { 'X-Requested-With': 'TCSoftNav' } })
+    fetch(href, { credentials: 'same-origin', cache: 'no-store', headers: { 'X-Requested-With': 'TCSoftNav' } })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.text();
@@ -411,6 +416,11 @@
         var next = doc.getElementById('tc-page');
         var cur = document.getElementById('tc-page');
         if (!next || !cur) {
+          location.href = href;
+          return;
+        }
+        var nextHtml = (next.innerHTML || '').replace(/\s+/g, ' ').trim();
+        if (nextHtml.length < 40) {
           location.href = href;
           return;
         }
